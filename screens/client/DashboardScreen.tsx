@@ -22,6 +22,7 @@ import Animated, { FadeIn, FadeInDown } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { LinearGradient } from "expo-linear-gradient"
 import AlertMessage from "../../components/alertMessage"
+import FloatingMenuButton from "../../components/FloatingMenuButton"
 
 const { width } = Dimensions.get("window")
 
@@ -34,7 +35,6 @@ export default function ClientDashboardScreen() {
   const [refreshing, setRefreshing] = useState(false)
   const [showAlert, setShowAlert] = useState(false)
   const [alertData, setAlertData] = useState({ title: "", message: "" })
-  const [weatherData, setWeatherData] = useState({ temp: "24°C", condition: "Soleado" })
 
   const unreadNotifications = notifications.filter((n) => !n.read).length
   const pendingInvoices = invoices.filter((i) => i.status === "pending" || i.status === "overdue").length
@@ -65,20 +65,16 @@ export default function ClientDashboardScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0284c7" />
+      <StatusBar barStyle="light-content" backgroundColor="#f7be0d" />
 
       {/* Header con gradiente */}
-      <LinearGradient colors={["#0284c7", "#0369a1"]} style={[styles.header, { paddingTop: insets.top + 10 }]}>
+      <LinearGradient colors={["#f7be0d", "#e6a800"]} style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <View style={styles.headerContent}>
           <View>
             <Text style={styles.welcomeText}>Bienvenido</Text>
             <Text style={styles.userName}>{user?.name || "Cliente"}</Text>
           </View>
           <View style={styles.headerButtons}>
-            <TouchableOpacity style={styles.weatherWidget} onPress={() => navigation.navigate("Map")}>
-              <Ionicons name="partly-sunny" size={18} color="white" />
-              <Text style={styles.weatherText}>{weatherData.temp}</Text>
-            </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton} onPress={handleNotifications}>
               <Ionicons name="notifications-outline" size={24} color="white" />
               {unreadNotifications > 0 && <Badge style={styles.badge}>{unreadNotifications}</Badge>}
@@ -89,7 +85,7 @@ export default function ClientDashboardScreen() {
 
       <ScrollView
         contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#0284c7"]} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#f7be0d"]} />}
         showsVerticalScrollIndicator={false}
       >
         {/* Tarjeta de Emergencia */}
@@ -129,8 +125,8 @@ export default function ClientDashboardScreen() {
         <Animated.View entering={FadeInDown.duration(400).delay(100)}>
           <View style={styles.quickAccessContainer}>
             <TouchableOpacity style={styles.quickAccessItem} onPress={() => navigation.navigate("Request")}>
-              <View style={[styles.quickAccessIcon, { backgroundColor: "#e0f2fe" }]}>
-                <Ionicons name="construct" size={24} color="#0284c7" />
+              <View style={[styles.quickAccessIcon, { backgroundColor: "#fff8e1" }]}>
+                <Ionicons name="construct" size={24} color="#f7be0d" />
               </View>
               <Text style={styles.quickAccessText}>Solicitar Servicio</Text>
             </TouchableOpacity>
@@ -170,21 +166,21 @@ export default function ClientDashboardScreen() {
                 </Chip>
               </View>
 
-              <View style={styles.maintenanceDetails}>
+              <View style={[styles.maintenanceDetails, { backgroundColor: "#fff8e1" }]}>
                 <View style={styles.maintenanceRow}>
-                  <Ionicons name="calendar" size={20} color="#0284c7" />
+                  <Ionicons name="calendar" size={20} color="#f7be0d" />
                   <Text style={styles.maintenanceText}>15 de Mayo, 2024</Text>
                 </View>
                 <View style={styles.maintenanceRow}>
-                  <Ionicons name="time" size={20} color="#0284c7" />
+                  <Ionicons name="time" size={20} color="#f7be0d" />
                   <Text style={styles.maintenanceText}>9:00 AM - 11:00 AM</Text>
                 </View>
                 <View style={styles.maintenanceRow}>
-                  <Ionicons name="person" size={20} color="#0284c7" />
+                  <Ionicons name="person" size={20} color="#f7be0d" />
                   <Text style={styles.maintenanceText}>Técnico: Carlos Rodríguez</Text>
                 </View>
                 <View style={styles.maintenanceRow}>
-                  <Ionicons name="information-circle" size={20} color="#0284c7" />
+                  <Ionicons name="information-circle" size={20} color="#f7be0d" />
                   <Text style={styles.maintenanceText}>Mantenimiento preventivo mensual</Text>
                 </View>
               </View>
@@ -192,7 +188,7 @@ export default function ClientDashboardScreen() {
               <View style={styles.maintenanceActions}>
                 <Button
                   mode="outlined"
-                  textColor="#0284c7"
+                  textColor="#f7be0d"
                   style={styles.maintenanceButton}
                   icon="calendar-sync"
                   onPress={() => {
@@ -206,7 +202,7 @@ export default function ClientDashboardScreen() {
                 </Button>
                 <Button
                   mode="contained"
-                  buttonColor="#0284c7"
+                  buttonColor="#f7be0d"
                   style={styles.maintenanceButton}
                   icon="check-circle"
                   onPress={() => {
@@ -261,14 +257,14 @@ export default function ClientDashboardScreen() {
                     <Text style={styles.contractStatusLabel}>Estado de Contrato</Text>
                     <Text style={styles.contractStatusValue}>Activo (8 meses restantes)</Text>
                   </View>
-                  <ProgressBar progress={0.65} color="#0284c7" style={styles.contractProgressBar} />
+                  <ProgressBar progress={0.65} color="#f7be0d" style={styles.contractProgressBar} />
                 </View>
               </View>
 
               <Button
                 mode="outlined"
-                textColor="#0284c7"
-                style={styles.viewAccountButton}
+                textColor="#f7be0d"
+                style={[styles.viewAccountButton, { borderColor: "#f7be0d" }]}
                 icon="file-document"
                 onPress={() => navigation.navigate("Account")}
               >
@@ -285,7 +281,7 @@ export default function ClientDashboardScreen() {
               <View style={styles.cardHeader}>
                 <Text style={styles.cardTitle}>Historial de Mantenimientos</Text>
                 <TouchableOpacity onPress={() => navigation.navigate("MaintenanceHistory")}>
-                  <Text style={styles.viewAllText}>Ver todos</Text>
+                  <Text style={[styles.viewAllText, { color: "#f7be0d" }]}>Ver todos</Text>
                 </TouchableOpacity>
               </View>
 
@@ -323,7 +319,7 @@ export default function ClientDashboardScreen() {
         <Animated.View entering={FadeInDown.duration(400).delay(500)}>
           <Card style={styles.supportCard}>
             <LinearGradient
-              colors={["#e0f2fe", "#bae6fd"]}
+              colors={["#fff8e1", "#ffefc1"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.supportGradient}
@@ -337,7 +333,7 @@ export default function ClientDashboardScreen() {
                 <View style={styles.supportActions}>
                   <TouchableOpacity style={styles.supportAction} onPress={() => Linking.openURL(`tel:+593968100793`)}>
                     <View style={styles.supportActionIcon}>
-                      <Ionicons name="call" size={24} color="#0284c7" />
+                      <Ionicons name="call" size={24} color="#f7be0d" />
                     </View>
                     <Text style={styles.supportActionText}>Llamar</Text>
                   </TouchableOpacity>
@@ -354,7 +350,7 @@ export default function ClientDashboardScreen() {
                     }}
                   >
                     <View style={styles.supportActionIcon}>
-                      <Ionicons name="mail" size={24} color="#0284c7" />
+                      <Ionicons name="mail" size={24} color="#f7be0d" />
                     </View>
                     <Text style={styles.supportActionText}>Email</Text>
                   </TouchableOpacity>
@@ -368,7 +364,7 @@ export default function ClientDashboardScreen() {
                     }}
                   >
                     <View style={styles.supportActionIcon}>
-                      <Ionicons name="logo-whatsapp" size={24} color="#0284c7" />
+                      <Ionicons name="logo-whatsapp" size={24} color="#f7be0d" />
                     </View>
                     <Text style={styles.supportActionText}>WhatsApp</Text>
                   </TouchableOpacity>
@@ -386,6 +382,9 @@ export default function ClientDashboardScreen() {
         message={alertData.message}
         onClose={() => setShowAlert(false)}
       />
+
+      {/* Floating Menu Button */}
+      <FloatingMenuButton />
     </View>
   )
 }
@@ -582,13 +581,12 @@ const styles = StyleSheet.create({
     color: "#1f2937",
   },
   statusChip: {
-    backgroundColor: "#e0f2fe",
+    backgroundColor: "#fff8e1",
   },
   statusChipText: {
-    color: "#0284c7",
+    color: "#f7be0d",
   },
   maintenanceDetails: {
-    backgroundColor: "#f0f9ff",
     padding: 16,
     borderRadius: 12,
     marginBottom: 16,
@@ -691,7 +689,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   viewAccountButton: {
-    borderColor: "#0284c7",
+    borderColor: "#f7be0d",
   },
   historyCard: {
     marginBottom: 20,
@@ -709,7 +707,6 @@ const styles = StyleSheet.create({
     }),
   },
   viewAllText: {
-    color: "#0284c7",
     fontWeight: "600",
   },
   maintenanceHistoryList: {
@@ -769,12 +766,12 @@ const styles = StyleSheet.create({
   supportTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#0c4a6e",
+    color: "#e6a800",
     marginBottom: 8,
     marginTop: 16,
   },
   supportText: {
-    color: "#0c4a6e",
+    color: "#e6a800",
     marginBottom: 16,
     lineHeight: 20,
   },
@@ -808,7 +805,7 @@ const styles = StyleSheet.create({
     }),
   },
   supportActionText: {
-    color: "#0c4a6e",
+    color: "#e6a800",
     fontWeight: "600",
   },
 })

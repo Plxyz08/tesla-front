@@ -7,7 +7,6 @@ import { Ionicons } from "@expo/vector-icons"
 import { View, Text, StyleSheet, Platform } from "react-native"
 import { createDrawerNavigator } from "@react-navigation/drawer"
 
-
 // Auth Screens
 import LoginScreen from "../screens/auth/LoginScreen"
 import RegisterScreen from "../screens/auth/RegisterScreen"
@@ -49,7 +48,7 @@ const Tab = createBottomTabNavigator()
 const headerTitleStyle = {
   fontSize: 20,
   fontWeight: "700" as const,
-  color: "#0284c7",
+  color: "#f7be0d", // Cambiado de #0284c7 a #f7be0d
 }
 
 const Drawer = createDrawerNavigator()
@@ -78,101 +77,124 @@ const TabBarLabel = ({ focused, color, label }: { focused: boolean; color: strin
   return <Text style={[styles.tabLabel, { color, opacity: focused ? 1 : 0.8 }]}>{label}</Text>
 }
 
-// Client Tab Navigator
+// Reemplazar ClientTabNavigator con ClientDrawerNavigator
 const ClientTabNavigator = () => (
-  <Tab.Navigator
-    screenOptions={({ route }) => ({
-      tabBarIcon: ({ focused, color }) => {
-        let iconName: IoniconsName = "home"
-
-        if (route.name === "Dashboard") {
-          iconName = "home"
-        } else if (route.name === "Account") {
-          iconName = "document-text"
-        } else if (route.name === "Request") {
-          iconName = "construct"
-        } else if (route.name === "Map") {
-          iconName = "map"
-        } else if (route.name === "Profile") {
-          iconName = "person"
-        }
-
-        return <TabBarIcon focused={focused} color={color} name={iconName} />
+  <Drawer.Navigator
+    screenOptions={{
+      drawerStyle: {
+        backgroundColor: "#f9fafb",
+        width: 240,
       },
-      tabBarLabel: ({ focused, color }) => {
-        let label
-
-        if (route.name === "Dashboard") {
-          label = "Inicio"
-        } else if (route.name === "Account") {
-          label = "Cuenta"
-        } else if (route.name === "Request") {
-          label = "Servicios"
-        } else if (route.name === "Map") {
-          label = "Ubicación"
-        } else if (route.name === "Profile") {
-          label = "Perfil"
-        }
-
-        return <TabBarLabel focused={focused} color={color} label={label || ""} />
-      },
-      tabBarActiveTintColor: "#0284c7",
-      tabBarInactiveTintColor: "#64748b",
-      tabBarStyle: styles.tabBar,
-      headerTitleStyle,
-      tabBarShowLabel: true,
-      tabBarHideOnKeyboard: true,
-      headerShadowVisible: false,
-    })}
+      drawerActiveTintColor: "#f7be0d",
+      drawerInactiveTintColor: "#64748b",
+      headerShown: false,
+    }}
   >
-    <Tab.Screen name="Dashboard" component={ClientDashboardScreen} options={{ headerShown: false }} />
-    <Tab.Screen name="Account" component={ClientAccountScreen} options={{ headerShown: false }} />
-    <Tab.Screen name="Request" component={ClientRequestScreen} options={{ headerShown: false }} />
-    <Tab.Screen name="Map" component={MapScreen} options={{ title: "Ubicación" }} />
-    <Tab.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
-  </Tab.Navigator>
+    <Drawer.Screen
+      name="Dashboard"
+      component={ClientDashboardScreen}
+      options={{
+        title: "Inicio",
+        drawerIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color} />,
+      }}
+    />
+    <Drawer.Screen
+      name="Account"
+      component={ClientAccountScreen}
+      options={{
+        title: "Cuenta",
+        drawerIcon: ({ color, size }) => <Ionicons name="document-text-outline" size={size} color={color} />,
+      }}
+    />
+    <Drawer.Screen
+      name="Request"
+      component={ClientRequestScreen}
+      options={{
+        title: "Servicios",
+        drawerIcon: ({ color, size }) => <Ionicons name="construct-outline" size={size} color={color} />,
+      }}
+    />
+    <Drawer.Screen
+      name="Map"
+      component={MapScreen}
+      options={{
+        title: "Ubicación",
+        drawerIcon: ({ color, size }) => <Ionicons name="map-outline" size={size} color={color} />,
+      }}
+    />
+    <Drawer.Screen
+      name="Profile"
+      component={ProfileScreen}
+      options={{
+        title: "Perfil",
+        drawerIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} />,
+      }}
+    />
+  </Drawer.Navigator>
 )
 
-// Technician Tab Navigator
+// Reemplazar TechnicianTabNavigator con TechnicianDrawerNavigator
 const TechnicianTabNavigator = () => (
-  <Tab.Navigator
-    screenOptions={({ route }) => ({
-      tabBarIcon: ({ focused, color }) => {
-        let iconName: IoniconsName = "home"
-
-        if (route.name === "Inicio") {
-          iconName = "home"
-        } else if (route.name === "Maintenance") {
-          iconName = "build"
-        } else if (route.name === "TimeTracking") {
-          iconName = "time"
-        } else if (route.name === "Detalles") {
-          iconName = "document-text"
-        } else if (route.name === "Profile") {
-          iconName = "person"
-        } else if (route.name === "Lista") {
-          iconName = "clipboard"
-        } else if (route.name === "Tiempo") {
-          iconName = "time"
-        } else if (route.name === "Reportes") {
-          iconName = "document"
-        }
-
-        return <TabBarIcon focused={focused} color={color} name={iconName} />
+  <Drawer.Navigator
+    screenOptions={{
+      drawerStyle: {
+        backgroundColor: "#f9fafb",
+        width: 240,
       },
-      tabBarActiveTintColor: "#059669",
-      tabBarInactiveTintColor: "#64748b",
-      tabBarStyle: styles.tabBar,
-      headerTitleStyle,
-    })}
+      drawerActiveTintColor: "#059669",
+      drawerInactiveTintColor: "#64748b",
+      headerShown: false,
+    }}
   >
-    <Tab.Screen name="Inicio" component={TechnicianDashboardScreen} options={{ headerShown: false }} />
-    <Tab.Screen name="Tiempo" component={TimeHistoryScreen} options={{ headerShown: false }} />
-    <Tab.Screen name="Reportes" component={CreateReportScreen} options={{ headerShown: false }} />
-    <Tab.Screen name="Lista" component={ReportsListScreen} options={{ headerShown: false }} />
-    <Tab.Screen name="Detalles" component={ReportDetailScreen} options={{ headerShown: false }} />
-    <Tab.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
-  </Tab.Navigator>
+    <Drawer.Screen
+      name="Inicio"
+      component={TechnicianDashboardScreen}
+      options={{
+        title: "Inicio",
+        drawerIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color} />,
+      }}
+    />
+    <Drawer.Screen
+      name="Tiempo"
+      component={TimeHistoryScreen}
+      options={{
+        title: "Historial de Tiempo",
+        drawerIcon: ({ color, size }) => <Ionicons name="time-outline" size={size} color={color} />,
+      }}
+    />
+    <Drawer.Screen
+      name="Reportes"
+      component={CreateReportScreen}
+      options={{
+        title: "Crear Reporte",
+        drawerIcon: ({ color, size }) => <Ionicons name="document-outline" size={size} color={color} />,
+      }}
+    />
+    <Drawer.Screen
+      name="Lista"
+      component={ReportsListScreen}
+      options={{
+        title: "Lista de Reportes",
+        drawerIcon: ({ color, size }) => <Ionicons name="clipboard-outline" size={size} color={color} />,
+      }}
+    />
+    <Drawer.Screen
+      name="Detalles"
+      component={ReportDetailScreen}
+      options={{
+        title: "Detalles de Reporte",
+        drawerIcon: ({ color, size }) => <Ionicons name="document-text-outline" size={size} color={color} />,
+      }}
+    />
+    <Drawer.Screen
+      name="Profile"
+      component={ProfileScreen}
+      options={{
+        title: "Perfil",
+        drawerIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} />,
+      }}
+    />
+  </Drawer.Navigator>
 )
 
 // Admin Tab Navigator
@@ -363,3 +385,4 @@ const styles = StyleSheet.create({
 })
 
 export default AppNavigator
+

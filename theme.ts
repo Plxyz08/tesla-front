@@ -18,6 +18,8 @@ export const theme = {
     onSurface: "#1f2937",
     onSurfaceVariant: "#6b7280",
     outline: "#e5e7eb",
+    // Añadimos el color amarillo para clientes
+    clientPrimary: "#f7be0d", // Color amarillo para clientes
   },
 }
 

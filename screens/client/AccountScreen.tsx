@@ -25,6 +25,7 @@ import InvoiceDetailsModal from "../../components/InvoiceDetailsModal"
 import FutureFeatureModal from "../../components/FutureFeatureModal"
 import PDFGenerator from "../../services/PDFGenerator"
 import ErrorMessage from "../../components/ErrorMessage"
+import FloatingMenuButton from "../../components/FloatingMenuButton"
 
 // Define types
 type InvoiceStatus = "paid" | "pending" | "overdue"
@@ -487,7 +488,7 @@ export default function ClientAccountScreen() {
         <Text style={styles.errorMessage}>
           Hubo un problema al cargar los datos de tu cuenta. Por favor intenta nuevamente.
         </Text>
-        <Button mode="contained" onPress={handleRetry} style={styles.retryButton} buttonColor="#0284c7">
+        <Button mode="contained" onPress={handleRetry} style={styles.retryButton} buttonColor="#f7be0d">
           Reintentar
         </Button>
       </SafeAreaView>
@@ -497,7 +498,7 @@ export default function ClientAccountScreen() {
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <LinearGradient colors={["#0284c7", "#0369a1"]} style={[styles.header, { paddingTop: insets.top }]}>
+      <LinearGradient colors={["#f7be0d", "#e6a800"]} style={[styles.header, { paddingTop: insets.top }]}>
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Estado de Cuenta</Text>
           <TouchableOpacity style={styles.headerActionButton} onPress={handleDownloadButtonPress}>
@@ -508,7 +509,7 @@ export default function ClientAccountScreen() {
 
       <ScrollView
         contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#0284c7"]} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#f7be0d"]} />}
       >
         {isLoading ? (
           // Skeleton loading state
@@ -536,7 +537,7 @@ export default function ClientAccountScreen() {
                       accessibilityLabel="Actualizar información"
                       accessibilityRole="button"
                     >
-                      <Ionicons name="refresh" size={20} color="#0284c7" />
+                      <Ionicons name="refresh" size={20} color="#f7be0d" />
                     </TouchableOpacity>
                   </View>
 
@@ -578,7 +579,7 @@ export default function ClientAccountScreen() {
                     <Button
                       mode="contained"
                       icon="credit-card"
-                      buttonColor="#0284c7"
+                      buttonColor="#f7be0d"
                       style={styles.payButton}
                       contentStyle={styles.buttonContent}
                       accessibilityLabel="Pagar ahora"
@@ -590,7 +591,7 @@ export default function ClientAccountScreen() {
                     <Button
                       mode="outlined"
                       icon="file-pdf-box"
-                      textColor="#0284c7"
+                      textColor="#f7be0d"
                       style={styles.downloadButton}
                       contentStyle={styles.buttonContent}
                       accessibilityLabel="Descargar estado de cuenta"
@@ -749,8 +750,8 @@ export default function ClientAccountScreen() {
                                 accessibilityLabel="Pagar factura"
                                 onPress={handlePayButtonPress}
                               >
-                                <Ionicons name="card-outline" size={18} color="#0284c7" />
-                                <Text style={[styles.invoiceActionText, { color: "#0284c7" }]}>Pagar</Text>
+                                <Ionicons name="card-outline" size={18} color="#f7be0d" />
+                                <Text style={[styles.invoiceActionText, { color: "#f7be0d" }]}>Pagar</Text>
                               </TouchableOpacity>
                             )}
                           </View>
@@ -773,7 +774,7 @@ export default function ClientAccountScreen() {
                         accessibilityLabel="Página anterior"
                         accessibilityState={{ disabled: page === 0 }}
                       >
-                        <Ionicons name="chevron-back" size={18} color={page === 0 ? "#d1d5db" : "#0284c7"} />
+                        <Ionicons name="chevron-back" size={18} color={page === 0 ? "#d1d5db" : "#f7be0d"} />
                       </TouchableOpacity>
 
                       <Text style={styles.paginationText}>
@@ -790,7 +791,7 @@ export default function ClientAccountScreen() {
                         <Ionicons
                           name="chevron-forward"
                           size={18}
-                          color={page >= totalPages - 1 ? "#d1d5db" : "#0284c7"}
+                          color={page >= totalPages - 1 ? "#d1d5db" : "#f7be0d"}
                         />
                       </TouchableOpacity>
                     </View>
@@ -811,7 +812,7 @@ export default function ClientAccountScreen() {
                   <View style={styles.contractDetails}>
                     <View style={styles.contractRow}>
                       <View style={styles.contractIconContainer}>
-                        <Ionicons name="document-text" size={20} color="#0284c7" />
+                        <Ionicons name="document-text" size={20} color="#f7be0d" />
                       </View>
                       <View style={styles.contractTextContainer}>
                         <Text style={styles.contractLabel}>Tipo de Contrato</Text>
@@ -821,7 +822,7 @@ export default function ClientAccountScreen() {
 
                     <View style={styles.contractRow}>
                       <View style={styles.contractIconContainer}>
-                        <Ionicons name="calendar" size={20} color="#0284c7" />
+                        <Ionicons name="calendar" size={20} color="#f7be0d" />
                       </View>
                       <View style={styles.contractTextContainer}>
                         <Text style={styles.contractLabel}>Fecha de Renovación</Text>
@@ -831,7 +832,7 @@ export default function ClientAccountScreen() {
 
                     <View style={styles.contractRow}>
                       <View style={styles.contractIconContainer}>
-                        <Ionicons name="time" size={20} color="#0284c7" />
+                        <Ionicons name="time" size={20} color="#f7be0d" />
                       </View>
                       <View style={styles.contractTextContainer}>
                         <Text style={styles.contractLabel}>Visitas Programadas</Text>
@@ -842,14 +843,14 @@ export default function ClientAccountScreen() {
 
                   <View style={styles.contractProgress}>
                     <Text style={styles.contractProgressLabel}>Tiempo restante del contrato</Text>
-                    <ProgressBar progress={0.65} color="#0284c7" style={styles.contractProgressBar} />
+                    <ProgressBar progress={0.65} color="#f7be0d" style={styles.contractProgressBar} />
                     <Text style={styles.contractProgressText}>8 meses restantes</Text>
                   </View>
 
                   <Button
                     mode="outlined"
                     icon="file-document"
-                    textColor="#0284c7"
+                    textColor="#f7be0d"
                     style={styles.viewContractButton}
                     accessibilityLabel="Ver contrato completo"
                     onPress={handleViewContract}
@@ -917,7 +918,7 @@ export default function ClientAccountScreen() {
       {isGeneratingPDF && (
         <View style={styles.loadingOverlay}>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#0284c7" />
+            <ActivityIndicator size="large" color="#f7be0d" />
             <Text style={styles.loadingText}>Generando documento...</Text>
           </View>
         </View>
@@ -958,6 +959,9 @@ export default function ClientAccountScreen() {
         message={errorData.message}
         onClose={() => setShowErrorMessage(false)}
       />
+
+      {/* Floating Menu Button */}
+      <FloatingMenuButton />
     </SafeAreaView>
   )
 }
@@ -1134,7 +1138,7 @@ const styles = StyleSheet.create({
   balanceAmount: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#0284c7",
+    color: "#f7be0d",
     marginBottom: 12,
   },
   paymentStatusContainer: {
@@ -1158,7 +1162,7 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     borderWidth: 8,
-    borderColor: "#e0f2fe",
+    borderColor: "#fff8e1",
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "white",
@@ -1166,7 +1170,7 @@ const styles = StyleSheet.create({
   progressPercent: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#0284c7",
+    color: "#f7be0d",
   },
   progressLabel: {
     fontSize: 12,
@@ -1184,7 +1188,7 @@ const styles = StyleSheet.create({
   downloadButton: {
     flex: 1,
     marginLeft: 8,
-    borderColor: "#0284c7",
+    borderColor: "#f7be0d",
   },
   buttonContent: {
     paddingVertical: 6,
@@ -1290,7 +1294,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f3f4f6",
   },
   activeFilterChip: {
-    backgroundColor: "#0284c7",
+    backgroundColor: "#f7be0d",
   },
   pendingFilterChip: {
     backgroundColor: "#fef9c3",
@@ -1326,7 +1330,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 12,
     borderLeftWidth: 4,
-    borderLeftColor: "#0284c7",
+    borderLeftColor: "#f7be0d",
   },
   invoiceHeader: {
     flexDirection: "row",
@@ -1451,7 +1455,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#e0f2fe",
+    backgroundColor: "#fff8e1",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
@@ -1488,23 +1492,23 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   viewContractButton: {
-    borderColor: "#0284c7",
+    borderColor: "#f7be0d",
   },
   // Support card styles
   supportCard: {
     marginBottom: 16,
     borderRadius: 12,
-    backgroundColor: "#f0f9ff",
+    backgroundColor: "#fff8e1",
     elevation: 2,
   },
   supportTitle: {
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 8,
-    color: "#0369a1",
+    color: "#e6a800",
   },
   supportText: {
-    color: "#0369a1",
+    color: "#e6a800",
     marginBottom: 20,
     lineHeight: 20,
   },
@@ -1520,7 +1524,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: "#0284c7",
+    backgroundColor: "#f7be0d",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 8,
@@ -1528,7 +1532,7 @@ const styles = StyleSheet.create({
   },
   supportButtonText: {
     marginTop: 4,
-    color: "#0284c7",
+    color: "#f7be0d",
     fontWeight: "500",
   },
 })

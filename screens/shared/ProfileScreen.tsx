@@ -70,7 +70,7 @@ export default function ProfileScreen() {
       case "technician":
         return "#059669" // Verde para técnico
       default:
-        return "#0284c7" // Azul para cliente
+        return "#f7be0d" // Azul para cliente
     }
   }
 
@@ -312,7 +312,7 @@ ${profileData.name}
                   <Text style={styles.profileName}>{profileData.name}</Text>
                 )}
 
-                <View style={styles.roleChip}>
+                <View style={[styles.roleChip, { backgroundColor: primaryColor + "20" }]}>
                   <Text style={styles.roleText}>
                     {user?.role === "admin" ? "Administrador" : user?.role === "technician" ? "Técnico" : "Cliente"}
                   </Text>
@@ -674,7 +674,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     right: 0,
-    backgroundColor: "#0284c7",
+    backgroundColor: "#f7be0d",
     width: 28,
     height: 28,
     borderRadius: 14,
@@ -700,7 +700,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   roleText: {
-    color: "#0284c7",
+    color: "#f7be0d",
     fontWeight: "600",
     fontSize: 12,
   },
@@ -708,7 +708,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#0284c7",
+    backgroundColor: "#f7be0d",
     justifyContent: "center",
     alignItems: "center",
   },

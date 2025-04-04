@@ -172,9 +172,9 @@ export default function LoginScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
     >
-      <StatusBar barStyle="light-content" backgroundColor="#0284c7" />
+      <StatusBar barStyle="light-content" backgroundColor="#f7be0d" />
 
-      <LinearGradient colors={["#0284c7", "#0369a1"]} style={[styles.header, { paddingTop: insets.top }]}>
+      <LinearGradient colors={["#f7be0d", "#e6a800"]} style={[styles.header, { paddingTop: insets.top }]}>
         <Image source={require("../../assets/logo.png")} style={styles.logo} resizeMode="contain" />
       </LinearGradient>
 
@@ -440,8 +440,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   checkboxChecked: {
-    backgroundColor: "#0284c7",
-    borderColor: "#0284c7",
+    backgroundColor: "#f7be0d", // Cambiado de #0284c7 a #f7be0d
+    borderColor: "#f7be0d", // Cambiado de #0284c7 a #f7be0d
   },
   rememberMeText: {
     fontSize: 14,
@@ -449,11 +449,11 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     fontSize: 14,
-    color: "#0284c7",
+    color: "#f7be0d", // Cambiado de #0284c7 a #f7be0d
     fontWeight: "500",
   },
   loginButton: {
-    backgroundColor: "#0284c7",
+    backgroundColor: "#f7be0d", // Cambiado de #0284c7 a #f7be0d
     height: 50,
     borderRadius: 12,
     justifyContent: "center",
@@ -507,7 +507,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#0891b2",
   },
   clientButton: {
-    backgroundColor: "#059669",
+    backgroundColor: "#f7be0d",
   },
   demoButtonText: {
     color: "white",

@@ -9,6 +9,7 @@ import { useApp } from "../../context/AppContext"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { LinearGradient } from "expo-linear-gradient"
 import Animated, { FadeInDown } from "react-native-reanimated"
+import FloatingMenuButton from "../../components/FloatingMenuButton"
 
 export default function MaintenanceHistoryScreen() {
   const navigation = useNavigation<any>()
@@ -72,10 +73,10 @@ export default function MaintenanceHistoryScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0284c7" />
+      <StatusBar barStyle="light-content" backgroundColor="#f7be0d" />
 
       {/* Header with gradient */}
-      <LinearGradient colors={["#0284c7", "#0369a1"]} style={[styles.header, { paddingTop: insets.top + 10 }]}>
+      <LinearGradient colors={["#f7be0d", "#e6a800"]} style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <View style={styles.headerContent}>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <Ionicons name="chevron-back" size={24} color="white" />
@@ -126,7 +127,7 @@ export default function MaintenanceHistoryScreen() {
 
       <ScrollView
         contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#0284c7"]} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#f7be0d"]} />}
         showsVerticalScrollIndicator={false}
       >
         {filteredMaintenances.length > 0 ? (
@@ -150,12 +151,12 @@ export default function MaintenanceHistoryScreen() {
 
                   <View style={styles.maintenanceDetails}>
                     <View style={styles.detailRow}>
-                      <Ionicons name="construct" size={20} color="#0284c7" />
+                      <Ionicons name="construct" size={20} color="#f7be0d" />
                       <Text style={styles.detailText}>{maintenance.type || "Mantenimiento preventivo"}</Text>
                     </View>
 
                     <View style={styles.detailRow}>
-                      <Ionicons name="time" size={20} color="#0284c7" />
+                      <Ionicons name="time" size={20} color="#f7be0d" />
                       <Text style={styles.detailText}>
                         {new Date(maintenance.scheduledDate).toLocaleTimeString([], {
                           hour: "2-digit",
@@ -189,7 +190,10 @@ export default function MaintenanceHistoryScreen() {
                       <View style={styles.completionDetails}>
                         {maintenance.completionDate && (
                           <Text style={styles.completionText}>
-                            Completado el: {maintenance.completionDate ? new Date(maintenance.completionDate.toString()).toLocaleDateString() : "Fecha no disponible"}
+                            Completado el:{" "}
+                            {maintenance.completionDate
+                              ? new Date(maintenance.completionDate.toString()).toLocaleDateString()
+                              : "Fecha no disponible"}
                           </Text>
                         )}
 
@@ -215,6 +219,9 @@ export default function MaintenanceHistoryScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Floating Menu Button */}
+      <FloatingMenuButton />
     </View>
   )
 }
@@ -288,13 +295,13 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   activeFilterChip: {
-    backgroundColor: "#0284c7",
+    backgroundColor: "#f7be0d",
   },
   completedFilterChip: {
     backgroundColor: "#d1fae5",
   },
   scheduledFilterChip: {
-    backgroundColor: "#e0f2fe",
+    backgroundColor: "#fff8e1",
   },
   inProgressFilterChip: {
     backgroundColor: "#fef3c7",
@@ -311,7 +318,7 @@ const styles = StyleSheet.create({
     color: "#10b981",
   },
   scheduledFilterChipText: {
-    color: "#0284c7",
+    color: "#f7be0d",
   },
   inProgressFilterChipText: {
     color: "#f59e0b",
@@ -353,7 +360,7 @@ const styles = StyleSheet.create({
     color: "#1f2937",
   },
   statusChip: {
-    height: 28,
+    height: "auto",
   },
   divider: {
     marginBottom: 16,
