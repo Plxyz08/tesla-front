@@ -27,7 +27,6 @@ import Animated, { FadeInDown } from "react-native-reanimated"
 import { StatusBar } from "expo-status-bar"
 import AlertMessage from "../../components/alertMessage"
 import ErrorMessage from "../../components/ErrorMessage"
-import FloatingMenuButton from "@/components/FloatingMenuButton"
 
 // Definir colores para el tema de administrador (morado)
 const COLORS = {
@@ -812,7 +811,6 @@ export default function CreateReportScreen() {
             </Card.Content>
           </Card>
         )}
-        <FloatingMenuButton />
       </ScrollView>
 
       {/* Navigation buttons */}

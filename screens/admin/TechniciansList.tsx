@@ -5,7 +5,6 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Alert } from
 import { Searchbar, Card, Button, Chip, FAB, Dialog, Portal, Divider, Menu } from "react-native-paper"
 import { Ionicons } from "@expo/vector-icons"
 import { useNavigation } from "@react-navigation/native"
-import  FloatingMenuButton  from "../../components/FloatingMenuButton"
 
 
 interface Technician {
@@ -452,7 +451,6 @@ export default function TechniciansList() {
           </Dialog.Actions>
         </Dialog>
       </Portal>
-      <FloatingMenuButton />
     </View>
   )
 }

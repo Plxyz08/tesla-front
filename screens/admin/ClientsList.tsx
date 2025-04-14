@@ -5,7 +5,6 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from "react
 import { Searchbar, Card, Button, Chip, FAB, Dialog, Portal, Divider, Menu } from "react-native-paper"
 import { Ionicons } from "@expo/vector-icons"
 import { useNavigation } from "@react-navigation/native"
-import  FloatingMenuButton  from "../../components/FloatingMenuButton"
 
 
 interface Client {
@@ -593,7 +592,6 @@ export default function ClientsList() {
           </Dialog.Actions>
         </Dialog>
       </Portal>
-      <FloatingMenuButton />
     </View>
   )
 }

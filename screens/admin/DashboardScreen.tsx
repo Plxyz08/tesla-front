@@ -1,11 +1,11 @@
 "use client"
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions } from "react-native"
-import { Card, Button, Badge, Chip } from "react-native-paper"
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from "react-native"
+import { Card, Button, Chip } from "react-native-paper"
 import { Ionicons } from "@expo/vector-icons"
 import { useNavigation } from "@react-navigation/native"
 import { useAuth } from "../../context/AuthContext"
 import { useApp } from "../../context/AppContext"
-import  FloatingMenuButton  from "../../components/FloatingMenuButton"
+import AppHeader from "../../components/AppHeader"
 
 const { width } = Dimensions.get("window")
 
@@ -150,93 +150,130 @@ export default function AdminDashboardScreen() {
         return status
     }
   }
-  
+
+  // Componente para el botón de notificaciones en el header
+  const NotificationsButton = () => (
+    <TouchableOpacity style={styles.notificationButton} onPress={handleNotifications}>
+      <Ionicons name="notifications" size={22} color="white" />
+      {unreadNotifications > 0 && (
+        <View style={styles.notificationBadge}>
+          <Text style={styles.notificationBadgeText}>{unreadNotifications}</Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  )
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.welcomeText}>Bienvenido</Text>
-          <Text style={styles.userName}>{user?.name}</Text>
-        </View>
-        <View style={styles.headerButtons}>
-          <TouchableOpacity style={styles.iconButton} onPress={handleNotifications}>
-            <Ionicons name="notifications-outline" size={24} color="#7c3aed" />
-            {unreadNotifications > 0 && <Badge style={styles.badge}>{unreadNotifications}</Badge>}
-          </TouchableOpacity>
-        </View>
-      </View>
-  
+      <AppHeader title="Dashboard" showBackButton={false} rightComponent={<NotificationsButton />} />
+
       <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.welcomeSection}>
+          <Text style={styles.welcomeText}>Bienvenido, {user?.name}</Text>
+          <Text style={styles.dateText}>
+            {new Date().toLocaleDateString("es-ES", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </Text>
+        </View>
+
         <View style={styles.quickActionsSection}>
           <Text style={styles.sectionTitle}>Acciones Rápidas</Text>
           <View style={styles.quickActionsGrid}>
-            <TouchableOpacity style={styles.quickActionCard} onPress={() => navigateToScreen("TechniciansList")}>
-              <View style={[styles.quickActionIcon, { backgroundColor: "#e0e7ff" }]}>
-                <Ionicons name="people" size={24} color="#6366f1" />
+            <TouchableOpacity
+              style={[styles.quickActionCard, styles.purpleGradient]}
+              onPress={() => navigateToScreen("TechniciansList")}
+            >
+              <View style={styles.quickActionContent}>
+                <View style={styles.quickActionIcon}>
+                  <Ionicons name="people" size={24} color="white" />
+                </View>
+                <Text style={styles.quickActionTitle}>Técnicos</Text>
               </View>
-              <Text style={styles.quickActionTitle}>Técnicos</Text>
+              <Ionicons name="chevron-forward" size={20} color="white" style={styles.quickActionArrow} />
             </TouchableOpacity>
-  
-            <TouchableOpacity style={styles.quickActionCard} onPress={() => navigateToScreen("ClientsList")}>
-              <View style={[styles.quickActionIcon, { backgroundColor: "#f0fdf4" }]}>
-                <Ionicons name="business" size={24} color="#22c55e" />
+
+            <TouchableOpacity
+              style={[styles.quickActionCard, styles.greenGradient]}
+              onPress={() => navigateToScreen("ClientsList")}
+            >
+              <View style={styles.quickActionContent}>
+                <View style={styles.quickActionIcon}>
+                  <Ionicons name="business" size={24} color="white" />
+                </View>
+                <Text style={styles.quickActionTitle}>Clientes</Text>
               </View>
-              <Text style={styles.quickActionTitle}>Clientes</Text>
+              <Ionicons name="chevron-forward" size={20} color="white" style={styles.quickActionArrow} />
             </TouchableOpacity>
-  
-            <TouchableOpacity style={styles.quickActionCard} onPress={() => navigateToScreen("ReportsList")}>
-              <View style={[styles.quickActionIcon, { backgroundColor: "#eff6ff" }]}>
-                <Ionicons name="document-text" size={24} color="#3b82f6" />
+
+            <TouchableOpacity
+              style={[styles.quickActionCard, styles.blueGradient]}
+              onPress={() => navigateToScreen("ReportsList")}
+            >
+              <View style={styles.quickActionContent}>
+                <View style={styles.quickActionIcon}>
+                  <Ionicons name="document-text" size={24} color="white" />
+                </View>
+                <Text style={styles.quickActionTitle}>Reportes</Text>
               </View>
-              <Text style={styles.quickActionTitle}>Reportes</Text>
+              <Ionicons name="chevron-forward" size={20} color="white" style={styles.quickActionArrow} />
             </TouchableOpacity>
-  
-            <TouchableOpacity style={styles.quickActionCard} onPress={() => navigateToScreen("CreateReport")}>
-              <View style={[styles.quickActionIcon, { backgroundColor: "#faf5ff" }]}>
-                <Ionicons name="add-circle" size={24} color="#8b5cf6" />
+
+            <TouchableOpacity
+              style={[styles.quickActionCard, styles.purpleGradient]}
+              onPress={() => navigateToScreen("CreateReport")}
+            >
+              <View style={styles.quickActionContent}>
+                <View style={styles.quickActionIcon}>
+                  <Ionicons name="add-circle" size={24} color="white" />
+                </View>
+                <Text style={styles.quickActionTitle}>Crear Reporte</Text>
               </View>
-              <Text style={styles.quickActionTitle}>Crear Reporte</Text>
+              <Ionicons name="chevron-forward" size={20} color="white" style={styles.quickActionArrow} />
             </TouchableOpacity>
           </View>
         </View>
-  
+
         <View style={styles.statsSection}>
           <Text style={styles.sectionTitle}>Resumen General</Text>
           <View style={styles.statsGrid}>
             <Card style={styles.statsCard}>
               <Card.Content>
-                <View style={styles.statsIconContainer}>
+                <View style={[styles.statsIconContainer, { backgroundColor: "#f5f3ff" }]}>
                   <Ionicons name="people" size={24} color="#7c3aed" />
                 </View>
                 <Text style={styles.statsValue}>{techniciansCount}</Text>
                 <Text style={styles.statsLabel}>Técnicos</Text>
               </Card.Content>
             </Card>
-  
+
             <Card style={styles.statsCard}>
               <Card.Content>
-                <View style={styles.statsIconContainer}>
-                  <Ionicons name="business" size={24} color="#7c3aed" />
+                <View style={[styles.statsIconContainer, { backgroundColor: "#f0fdf4" }]}>
+                  <Ionicons name="business" size={24} color="#22c55e" />
                 </View>
                 <Text style={styles.statsValue}>{activeClients}</Text>
                 <Text style={styles.statsLabel}>Clientes Activos</Text>
               </Card.Content>
             </Card>
-  
+
             <Card style={styles.statsCard}>
               <Card.Content>
-                <View style={styles.statsIconContainer}>
-                  <Ionicons name="document-text" size={24} color="#7c3aed" />
+                <View style={[styles.statsIconContainer, { backgroundColor: "#eff6ff" }]}>
+                  <Ionicons name="document-text" size={24} color="#3b82f6" />
                 </View>
                 <Text style={styles.statsValue}>{reportsThisMonth}</Text>
                 <Text style={styles.statsLabel}>Reportes este mes</Text>
               </Card.Content>
             </Card>
-  
+
             <Card style={styles.statsCard}>
               <Card.Content>
-                <View style={styles.statsIconContainer}>
-                  <Ionicons name="alert-circle" size={24} color="#7c3aed" />
+                <View style={[styles.statsIconContainer, { backgroundColor: "#fff1f2" }]}>
+                  <Ionicons name="alert-circle" size={24} color="#ef4444" />
                 </View>
                 <Text style={styles.statsValue}>{pendingReports}</Text>
                 <Text style={styles.statsLabel}>Reportes pendientes</Text>
@@ -244,15 +281,20 @@ export default function AdminDashboardScreen() {
             </Card>
           </View>
         </View>
-  
+
         <View style={styles.recentSection}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Reportes Recientes</Text>
-            <Button mode="text" textColor="#7c3aed" onPress={() => navigateToScreen("ReportsList")}>
+            <Button
+              mode="text"
+              textColor="#7c3aed"
+              onPress={() => navigateToScreen("ReportsList")}
+              labelStyle={styles.viewAllButtonLabel}
+            >
               Ver todos
             </Button>
           </View>
-  
+
           {recentReports.map((report) => (
             <Card key={report.id} style={styles.reportCard}>
               <Card.Content>
@@ -263,24 +305,25 @@ export default function AdminDashboardScreen() {
                   </View>
                   <Chip
                     style={[styles.statusChip, { backgroundColor: getStatusColor(report.status) + "20" }]}
-                    textStyle={{ color: getStatusColor(report.status) }}
+                    textStyle={{ color: getStatusColor(report.status), fontWeight: "500" }}
                   >
                     {getStatusText(report.status)}
                   </Chip>
                 </View>
-  
+
                 <View style={styles.reportDetails}>
                   <View style={styles.reportDetailRow}>
                     <Ionicons name="calendar-outline" size={16} color="#6b7280" />
                     <Text style={styles.reportDetailText}>{report.date.toLocaleDateString()}</Text>
                   </View>
                 </View>
-  
+
                 <Button
                   mode="outlined"
                   textColor="#7c3aed"
                   onPress={() => navigateToScreen("ReportDetail")}
                   style={styles.viewButton}
+                  labelStyle={styles.viewButtonLabel}
                 >
                   Ver Detalles
                 </Button>
@@ -289,9 +332,6 @@ export default function AdminDashboardScreen() {
           ))}
         </View>
       </ScrollView>
-  
-      {/* Botón flotante para abrir el menú */}
-      <FloatingMenuButton />
     </View>
   )
 }
@@ -301,43 +341,49 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f9fafb",
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 16,
-    backgroundColor: "white",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-    marginTop: 20,
-  },
-  welcomeText: {
-    fontSize: 14,
-    color: "#6b7280",
-  },
-  userName: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#7c3aed",
-  },
-  headerButtons: {
-    flexDirection: "row",
-  },
-  iconButton: {
-    marginLeft: 16,
+  notificationButton: {
     position: "relative",
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  badge: {
+  notificationBadge: {
     position: "absolute",
-    top: -4,
-    right: -4,
+    top: -2,
+    right: -2,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
     backgroundColor: "#ef4444",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 4,
+  },
+  notificationBadgeText: {
+    color: "white",
+    fontSize: 10,
+    fontWeight: "bold",
   },
   content: {
     padding: 16,
     paddingBottom: 32,
+  },
+  welcomeSection: {
+    marginBottom: 24,
+    marginTop: 8,
+  },
+  welcomeText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#1f2937",
+  },
+  dateText: {
+    fontSize: 14,
+    color: "#6b7280",
+    marginTop: 4,
   },
   quickActionsSection: {
     marginBottom: 24,
@@ -355,29 +401,46 @@ const styles = StyleSheet.create({
   },
   quickActionCard: {
     width: "48%",
-    backgroundColor: "white",
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  purpleGradient: {
+    backgroundColor: "#7c3aed",
+  },
+  greenGradient: {
+    backgroundColor: "#10b981",
+  },
+  blueGradient: {
+    backgroundColor: "#3b82f6",
+  },
+  quickActionContent: {
+    flexDirection: "column",
   },
   quickActionIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     marginBottom: 12,
   },
   quickActionTitle: {
     fontSize: 14,
-    fontWeight: "500",
-    color: "#374151",
+    fontWeight: "600",
+    color: "white",
+  },
+  quickActionArrow: {
+    opacity: 0.7,
   },
   statsSection: {
     marginBottom: 24,
@@ -390,13 +453,13 @@ const styles = StyleSheet.create({
   statsCard: {
     width: "48%",
     marginBottom: 16,
-    borderRadius: 12,
+    borderRadius: 16,
+    elevation: 2,
   },
   statsIconContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#f5f3ff",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 12,
@@ -420,9 +483,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 16,
   },
+  viewAllButtonLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
   reportCard: {
     marginBottom: 16,
-    borderRadius: 12,
+    borderRadius: 16,
+    elevation: 2,
   },
   reportHeader: {
     flexDirection: "row",
@@ -441,8 +509,8 @@ const styles = StyleSheet.create({
     color: "#6b7280",
   },
   statusChip: {
-    height: "auto",
-    borderRadius: 12,
+    height: 28,
+    borderRadius: 14,
   },
   reportDetails: {
     marginBottom: 16,
@@ -459,63 +527,10 @@ const styles = StyleSheet.create({
   },
   viewButton: {
     borderColor: "#7c3aed",
+    borderRadius: 8,
   },
-  technicianCard: {
-    marginBottom: 16,
-    borderRadius: 12,
-  },
-  technicianHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  technicianPhoto: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: 12,
-  },
-  technicianInfo: {
-    flex: 1,
-  },
-  technicianName: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#1f2937",
-    marginBottom: 4,
-  },
-  technicianStats: {
-    flexDirection: "row",
-  },
-  technicianStat: {
+  viewButtonLabel: {
     fontSize: 14,
-    color: "#6b7280",
-  },
-  clientCard: {
-    marginBottom: 16,
-    borderRadius: 12,
-  },
-  clientHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 16,
-  },
-  clientName: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#1f2937",
-    marginBottom: 4,
-  },
-  clientStats: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-  },
-  clientStat: {
-    fontSize: 14,
-    color: "#6b7280",
-    marginRight: 12,
-    marginBottom: 4,
+    fontWeight: "600",
   },
 })
-

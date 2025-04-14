@@ -2,7 +2,7 @@
 
 import { Ionicons } from "@expo/vector-icons"
 import { useNavigation, DrawerActions } from "@react-navigation/native"
-import { TouchableOpacity, StyleSheet } from "react-native"
+import { TouchableOpacity, StyleSheet, View } from "react-native"
 import { useAuth } from "../context/AuthContext"
 
 // Botón flotante para abrir el menú
@@ -10,33 +10,35 @@ const FloatingMenuButton = () => {
   const navigation = useNavigation()
   const { user } = useAuth()
 
-  // Mostrar el botón para todos los usuarios, ya que ahora todos usan Drawer
+  // Determinar el color según el rol del usuario
+  const buttonColor =
+    user?.role === "admin"
+      ? "#7c3aed" // Morado para admin
+      : user?.role === "technician"
+        ? "#059669" // Verde para técnicos
+        : "#efb810" // Dorado para clientes
+
   return (
-    <TouchableOpacity
-      style={[
-        styles.floatingButton,
-        // Colores diferentes según el rol
-        user?.role === "admin"
-          ? styles.adminButton
-          : user?.role === "technician"
-            ? styles.technicianButton
-            : styles.clientButton,
-      ]}
-      onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
-    >
-      <Ionicons name="menu" size={24} color="white" />
-    </TouchableOpacity>
+    <View style={styles.container}>
+      <TouchableOpacity
+        style={[styles.floatingButton, { backgroundColor: buttonColor }]}
+        onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+      >
+        <Ionicons name="add" size={30} color="white" />
+      </TouchableOpacity>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
+  container: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
   floatingButton: {
-    position: "absolute",
-    bottom: 20,
-    left: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     alignItems: "center",
     justifyContent: "center",
     elevation: 5,
@@ -44,15 +46,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
-  },
-  adminButton: {
-    backgroundColor: "#7c3aed", // Violeta para admin (original)
-  },
-  technicianButton: {
-    backgroundColor: "#059669", // Verde para técnicos
-  },
-  clientButton: {
-    backgroundColor: "#f7be0d", // Amarillo para clientes
+    marginBottom: 15, // Elevarlo un poco sobre la barra de navegación
   },
 })
 

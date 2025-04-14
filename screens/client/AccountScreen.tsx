@@ -25,7 +25,6 @@ import InvoiceDetailsModal from "../../components/InvoiceDetailsModal"
 import FutureFeatureModal from "../../components/FutureFeatureModal"
 import PDFGenerator from "../../services/PDFGenerator"
 import ErrorMessage from "../../components/ErrorMessage"
-import FloatingMenuButton from "../../components/FloatingMenuButton"
 
 // Define types
 type InvoiceStatus = "paid" | "pending" | "overdue"
@@ -959,9 +958,6 @@ export default function ClientAccountScreen() {
         message={errorData.message}
         onClose={() => setShowErrorMessage(false)}
       />
-
-      {/* Floating Menu Button */}
-      <FloatingMenuButton />
     </SafeAreaView>
   )
 }

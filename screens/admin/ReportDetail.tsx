@@ -27,7 +27,6 @@ import ErrorMessage from "../../components/ErrorMessage"
 import * as FileSystem from "expo-file-system"
 import * as Sharing from "expo-sharing"
 import * as Print from "expo-print"
-import FloatingMenuButton from "@/components/FloatingMenuButton"
 
 // Definir colores para el tema de técnicos
 const COLORS = {
@@ -1122,7 +1121,6 @@ export default function ReportDetailScreen() {
         message={errorData.message}
         onClose={() => setErrorVisible(false)}
       />
-        <FloatingMenuButton />
     </View>
   )
 }

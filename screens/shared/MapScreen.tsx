@@ -25,7 +25,6 @@ import Animated, {
 } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { BlurView } from "expo-blur"
-import FloatingMenuButton from "../../components/FloatingMenuButton"
 
 // Custom map style - dark mode inspired
 const customMapStyle: MapStyleElement[] = [
@@ -630,9 +629,6 @@ export default function MapScreen() {
           </View>
         </Animated.View>
       )}
-
-      {/* Floating Menu Button */}
-      <FloatingMenuButton />
     </View>
   )
 }

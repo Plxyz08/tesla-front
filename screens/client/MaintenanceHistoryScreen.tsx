@@ -9,7 +9,6 @@ import { useApp } from "../../context/AppContext"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { LinearGradient } from "expo-linear-gradient"
 import Animated, { FadeInDown } from "react-native-reanimated"
-import FloatingMenuButton from "../../components/FloatingMenuButton"
 
 export default function MaintenanceHistoryScreen() {
   const navigation = useNavigation<any>()
@@ -219,9 +218,6 @@ export default function MaintenanceHistoryScreen() {
           </View>
         )}
       </ScrollView>
-
-      {/* Floating Menu Button */}
-      <FloatingMenuButton />
     </View>
   )
 }

@@ -6,6 +6,8 @@ import { useAuth } from "../context/AuthContext"
 import { Ionicons } from "@expo/vector-icons"
 import { View, Text, StyleSheet, Platform } from "react-native"
 import { createDrawerNavigator } from "@react-navigation/drawer"
+import FloatingMenuButton from "../components/FloatingMenuButton"
+import { DrawerActions } from "@react-navigation/native" // Import DrawerActions
 
 // Auth Screens
 import LoginScreen from "../screens/auth/LoginScreen"
@@ -77,33 +79,25 @@ const TabBarLabel = ({ focused, color, label }: { focused: boolean; color: strin
   return <Text style={[styles.tabLabel, { color, opacity: focused ? 1 : 0.8 }]}>{label}</Text>
 }
 
-// Reemplazar ClientTabNavigator con ClientDrawerNavigator
-const ClientTabNavigator = () => (
+// Drawer para opciones adicionales del Cliente
+const ClientDrawerNavigator = () => (
   <Drawer.Navigator
     screenOptions={{
       drawerStyle: {
         backgroundColor: "#f9fafb",
         width: 240,
       },
-      drawerActiveTintColor: "#f7be0d",
+      drawerActiveTintColor: "#efb810",
       drawerInactiveTintColor: "#64748b",
       headerShown: false,
     }}
   >
     <Drawer.Screen
-      name="Dashboard"
-      component={ClientDashboardScreen}
+      name="ClientTabsScreen"
+      component={ClientTabNavigator}
       options={{
-        title: "Inicio",
+        title: "Tesla Lift",
         drawerIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color} />,
-      }}
-    />
-    <Drawer.Screen
-      name="Account"
-      component={ClientAccountScreen}
-      options={{
-        title: "Cuenta",
-        drawerIcon: ({ color, size }) => <Ionicons name="document-text-outline" size={size} color={color} />,
       }}
     />
     <Drawer.Screen
@@ -115,26 +109,42 @@ const ClientTabNavigator = () => (
       }}
     />
     <Drawer.Screen
-      name="Map"
-      component={MapScreen}
+      name="Emergency"
+      component={ClientEmergencyScreen}
       options={{
-        title: "Ubicación",
-        drawerIcon: ({ color, size }) => <Ionicons name="map-outline" size={size} color={color} />,
+        title: "Emergencia",
+        drawerIcon: ({ color, size }) => <Ionicons name="alert-circle-outline" size={size} color={color} />,
       }}
     />
     <Drawer.Screen
-      name="Profile"
-      component={ProfileScreen}
+      name="ScheduleMeeting"
+      component={ScheduleMeetingScreen}
       options={{
-        title: "Perfil",
-        drawerIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} />,
+        title: "Programar Reunión",
+        drawerIcon: ({ color, size }) => <Ionicons name="calendar-outline" size={size} color={color} />,
+      }}
+    />
+    <Drawer.Screen
+      name="MaintenanceHistory"
+      component={MaintenanceHistoryScreen}
+      options={{
+        title: "Historial de Mantenimientos",
+        drawerIcon: ({ color, size }) => <Ionicons name="time-outline" size={size} color={color} />,
+      }}
+    />
+    <Drawer.Screen
+      name="Notifications"
+      component={NotificationsScreen}
+      options={{
+        title: "Notificaciones",
+        drawerIcon: ({ color, size }) => <Ionicons name="notifications-outline" size={size} color={color} />,
       }}
     />
   </Drawer.Navigator>
 )
 
-// Reemplazar TechnicianTabNavigator con TechnicianDrawerNavigator
-const TechnicianTabNavigator = () => (
+// Drawer para opciones adicionales del Técnico
+const TechnicianDrawerNavigator = () => (
   <Drawer.Navigator
     screenOptions={{
       drawerStyle: {
@@ -147,10 +157,10 @@ const TechnicianTabNavigator = () => (
     }}
   >
     <Drawer.Screen
-      name="Inicio"
-      component={TechnicianDashboardScreen}
+      name="TechnicianTabsScreen"
+      component={TechnicianTabNavigator}
       options={{
-        title: "Inicio",
+        title: "Tesla Lift",
         drawerIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color} />,
       }}
     />
@@ -163,14 +173,6 @@ const TechnicianTabNavigator = () => (
       }}
     />
     <Drawer.Screen
-      name="Reportes"
-      component={CreateReportScreen}
-      options={{
-        title: "Crear Reporte",
-        drawerIcon: ({ color, size }) => <Ionicons name="document-outline" size={size} color={color} />,
-      }}
-    />
-    <Drawer.Screen
       name="Lista"
       component={ReportsListScreen}
       options={{
@@ -179,25 +181,17 @@ const TechnicianTabNavigator = () => (
       }}
     />
     <Drawer.Screen
-      name="Detalles"
-      component={ReportDetailScreen}
+      name="Notifications"
+      component={NotificationsScreen}
       options={{
-        title: "Detalles de Reporte",
-        drawerIcon: ({ color, size }) => <Ionicons name="document-text-outline" size={size} color={color} />,
-      }}
-    />
-    <Drawer.Screen
-      name="Profile"
-      component={ProfileScreen}
-      options={{
-        title: "Perfil",
-        drawerIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} />,
+        title: "Notificaciones",
+        drawerIcon: ({ color, size }) => <Ionicons name="notifications-outline" size={size} color={color} />,
       }}
     />
   </Drawer.Navigator>
 )
 
-// Admin Tab Navigator
+// Drawer para opciones adicionales del Admin
 const AdminDrawerNavigator = () => (
   <Drawer.Navigator
     screenOptions={{
@@ -211,27 +205,11 @@ const AdminDrawerNavigator = () => (
     }}
   >
     <Drawer.Screen
-      name="Dashboard"
-      component={AdminDashboardScreen}
+      name="AdminTabsScreen"
+      component={AdminTabNavigator}
       options={{
-        title: "Inicio",
+        title: "Tesla Lift",
         drawerIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color} />,
-      }}
-    />
-    <Drawer.Screen
-      name="TechniciansList"
-      component={TechniciansList}
-      options={{
-        title: "Técnicos",
-        drawerIcon: ({ color, size }) => <Ionicons name="people-outline" size={size} color={color} />,
-      }}
-    />
-    <Drawer.Screen
-      name="ClientsList"
-      component={ClientsList}
-      options={{
-        title: "Clientes",
-        drawerIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} />,
       }}
     />
     <Drawer.Screen
@@ -267,15 +245,219 @@ const AdminDrawerNavigator = () => (
       }}
     />
     <Drawer.Screen
-      name="Profile"
-      component={ProfileScreen}
+      name="Notifications"
+      component={NotificationsScreen}
       options={{
-        title: "Perfil",
-        drawerIcon: ({ color, size }) => <Ionicons name="person-circle-outline" size={size} color={color} />,
+        title: "Notificaciones",
+        drawerIcon: ({ color, size }) => <Ionicons name="notifications-outline" size={size} color={color} />,
       }}
     />
   </Drawer.Navigator>
 )
+
+// Cliente Tab Navigator (Nuevo diseño con 5 tabs)
+const ClientTabNavigator = () => {
+  const { user } = useAuth()
+  const activeColor = "#efb810" // Color dorado para clientes
+
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        tabBarStyle: styles.tabBar,
+        tabBarShowLabel: true,
+        tabBarActiveTintColor: activeColor,
+        tabBarInactiveTintColor: "#9ca3af",
+        headerShown: false,
+      }}
+    >
+      <Tab.Screen
+        name="Dashboard"
+        component={ClientDashboardScreen}
+        options={{
+          title: "Inicio",
+          tabBarIcon: ({ focused, color }) => <TabBarIcon focused={focused} color={color} name="home" />,
+          tabBarLabel: ({ focused, color }) => <TabBarLabel focused={focused} color={color} label="Inicio" />,
+        }}
+      />
+      <Tab.Screen
+        name="Account"
+        component={ClientAccountScreen}
+        options={{
+          title: "Estado",
+          tabBarIcon: ({ focused, color }) => <TabBarIcon focused={focused} color={color} name="document-text" />,
+          tabBarLabel: ({ focused, color }) => <TabBarLabel focused={focused} color={color} label="Estado" />,
+        }}
+      />
+      <Tab.Screen
+        name="MenuButton"
+        component={View}
+        options={{
+          tabBarButton: () => <FloatingMenuButton />,
+        }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault()
+            navigation.dispatch(DrawerActions.openDrawer())
+          },
+        })}
+      />
+      <Tab.Screen
+        name="Map"
+        component={MapScreen}
+        options={{
+          title: "Mapa",
+          tabBarIcon: ({ focused, color }) => <TabBarIcon focused={focused} color={color} name="map" />,
+          tabBarLabel: ({ focused, color }) => <TabBarLabel focused={focused} color={color} label="Mapa" />,
+        }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{
+          title: "Perfil",
+          tabBarIcon: ({ focused, color }) => <TabBarIcon focused={focused} color={color} name="person" />,
+          tabBarLabel: ({ focused, color }) => <TabBarLabel focused={focused} color={color} label="Perfil" />,
+        }}
+      />
+    </Tab.Navigator>
+  )
+}
+
+// Técnico Tab Navigator (Nuevo diseño con 5 tabs)
+const TechnicianTabNavigator = () => {
+  const { user } = useAuth()
+  const activeColor = "#059669" // Color verde para técnicos
+
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        tabBarStyle: styles.tabBar,
+        tabBarShowLabel: true,
+        tabBarActiveTintColor: activeColor,
+        tabBarInactiveTintColor: "#9ca3af",
+        headerShown: false,
+      }}
+    >
+      <Tab.Screen
+        name="Inicio"
+        component={TechnicianDashboardScreen}
+        options={{
+          title: "Inicio",
+          tabBarIcon: ({ focused, color }) => <TabBarIcon focused={focused} color={color} name="home" />,
+          tabBarLabel: ({ focused, color }) => <TabBarLabel focused={focused} color={color} label="Inicio" />,
+        }}
+      />
+      <Tab.Screen
+        name="Reportes"
+        component={CreateReportScreen}
+        options={{
+          title: "Crear",
+          tabBarIcon: ({ focused, color }) => <TabBarIcon focused={focused} color={color} name="document" />,
+          tabBarLabel: ({ focused, color }) => <TabBarLabel focused={focused} color={color} label="Crear" />,
+        }}
+      />
+      <Tab.Screen
+        name="MenuButton"
+        component={View}
+        options={{
+          tabBarButton: () => <FloatingMenuButton />,
+        }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault()
+            navigation.dispatch(DrawerActions.openDrawer())
+          },
+        })}
+      />
+      <Tab.Screen
+        name="Detalles"
+        component={ReportDetailScreen}
+        options={{
+          title: "Detalles",
+          tabBarIcon: ({ focused, color }) => <TabBarIcon focused={focused} color={color} name="document-text" />,
+          tabBarLabel: ({ focused, color }) => <TabBarLabel focused={focused} color={color} label="Detalles" />,
+        }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{
+          title: "Perfil",
+          tabBarIcon: ({ focused, color }) => <TabBarIcon focused={focused} color={color} name="person" />,
+          tabBarLabel: ({ focused, color }) => <TabBarLabel focused={focused} color={color} label="Perfil" />,
+        }}
+      />
+    </Tab.Navigator>
+  )
+}
+
+// Admin Tab Navigator (Nuevo diseño con 5 tabs)
+const AdminTabNavigator = () => {
+  const { user } = useAuth()
+  const activeColor = "#7c3aed" // Color morado para admin
+
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        tabBarStyle: styles.tabBar,
+        tabBarShowLabel: true,
+        tabBarActiveTintColor: activeColor,
+        tabBarInactiveTintColor: "#9ca3af",
+        headerShown: false,
+      }}
+    >
+      <Tab.Screen
+        name="Dashboard"
+        component={AdminDashboardScreen}
+        options={{
+          title: "Inicio",
+          tabBarIcon: ({ focused, color }) => <TabBarIcon focused={focused} color={color} name="home" />,
+          tabBarLabel: ({ focused, color }) => <TabBarLabel focused={focused} color={color} label="Inicio" />,
+        }}
+      />
+      <Tab.Screen
+        name="ClientsList"
+        component={ClientsList}
+        options={{
+          title: "Clientes",
+          tabBarIcon: ({ focused, color }) => <TabBarIcon focused={focused} color={color} name="people" />,
+          tabBarLabel: ({ focused, color }) => <TabBarLabel focused={focused} color={color} label="Clientes" />,
+        }}
+      />
+      <Tab.Screen
+        name="MenuButton"
+        component={View}
+        options={{
+          tabBarButton: () => <FloatingMenuButton />,
+        }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault()
+            navigation.dispatch(DrawerActions.openDrawer())
+          },
+        })}
+      />
+      <Tab.Screen
+        name="TechniciansList"
+        component={TechniciansList}
+        options={{
+          title: "Técnicos",
+          tabBarIcon: ({ focused, color }) => <TabBarIcon focused={focused} color={color} name="construct" />,
+          tabBarLabel: ({ focused, color }) => <TabBarLabel focused={focused} color={color} label="Técnicos" />,
+        }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{
+          title: "Perfil",
+          tabBarIcon: ({ focused, color }) => <TabBarIcon focused={focused} color={color} name="person" />,
+          tabBarLabel: ({ focused, color }) => <TabBarLabel focused={focused} color={color} label="Perfil" />,
+        }}
+      />
+    </Tab.Navigator>
+  )
+}
 
 // Main Navigator
 const AppNavigator = () => {
@@ -291,8 +473,8 @@ const AppNavigator = () => {
         <Stack.Screen name="Auth" component={AuthNavigator} />
       ) : (
         <>
-          {user.role === "client" && <Stack.Screen name="ClientTabs" component={ClientTabNavigator} />}
-          {user.role === "technician" && <Stack.Screen name="TechnicianTabs" component={TechnicianTabNavigator} />}
+          {user.role === "client" && <Stack.Screen name="ClientTabs" component={ClientDrawerNavigator} />}
+          {user.role === "technician" && <Stack.Screen name="TechnicianTabs" component={TechnicianDrawerNavigator} />}
           {user.role === "admin" && <Stack.Screen name="AdminDrawer" component={AdminDrawerNavigator} />}
 
           {/* Pantallas comunes */}
@@ -346,12 +528,14 @@ const AppNavigator = () => {
 
 const styles = StyleSheet.create({
   tabBar: {
-    height: 60,
+    height: 70,
     paddingTop: 5,
-    paddingBottom: 8,
+    paddingBottom: 10,
     backgroundColor: "white",
     borderTopWidth: 1,
     borderTopColor: "#e5e7eb",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     ...Platform.select({
       ios: {
         shadowColor: "#000",
@@ -385,4 +569,3 @@ const styles = StyleSheet.create({
 })
 
 export default AppNavigator
-

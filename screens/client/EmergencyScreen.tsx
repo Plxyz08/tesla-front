@@ -6,7 +6,6 @@ import { Button } from "react-native-paper"
 import { Ionicons } from "@expo/vector-icons"
 import { useNotification } from "../../context/NotificationContext"
 import type { Audio } from "expo-av"
-import FloatingMenuButton from "../../components/FloatingMenuButton"
 
 // Emergency phone numbers
 const EMERGENCY_NUMBERS = {
@@ -77,9 +76,6 @@ export default function ClientEmergencyScreen() {
       <View style={styles.footer}>
         <Text style={styles.footerText}>Mantenga la calma mientras la ayuda va en camino</Text>
       </View>
-
-      {/* Floating Menu Button */}
-      <FloatingMenuButton />
     </View>
   )
 }

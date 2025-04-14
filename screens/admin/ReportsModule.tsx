@@ -17,7 +17,6 @@ import * as FileSystem from "expo-file-system"
 import * as Sharing from "expo-sharing"
 import * as Print from "expo-print"
 import DateTimePicker from "@react-native-community/datetimepicker"
-import FloatingMenuButton from "@/components/FloatingMenuButton"
 
 // Definir colores para el tema de administrador
 const COLORS = {
@@ -1160,7 +1159,6 @@ export default function ReportsModule() {
         message={errorData.message}
         onClose={() => setErrorVisible(false)}
       />
-      <FloatingMenuButton />
     </View>
   )
 }

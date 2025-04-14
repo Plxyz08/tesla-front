@@ -13,7 +13,6 @@ import type { Report } from "../../models/technician"
 import Animated, { FadeInDown } from "react-native-reanimated"
 import AlertMessage from "../../components/alertMessage"
 import ErrorMessage from "../../components/ErrorMessage"
-import  FloatingMenuButton  from "../../components/FloatingMenuButton"
 
 
 // Definir colores para el tema de técnicos
@@ -356,7 +355,6 @@ export default function ReportsListScreen() {
         message={errorData.message}
         onClose={() => setErrorVisible(false)}
       />
-    <FloatingMenuButton />
     </View>
   )
 }

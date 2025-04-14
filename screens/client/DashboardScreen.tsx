@@ -22,7 +22,6 @@ import Animated, { FadeIn, FadeInDown } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { LinearGradient } from "expo-linear-gradient"
 import AlertMessage from "../../components/alertMessage"
-import FloatingMenuButton from "../../components/FloatingMenuButton"
 
 const { width } = Dimensions.get("window")
 
@@ -382,9 +381,6 @@ export default function ClientDashboardScreen() {
         message={alertData.message}
         onClose={() => setShowAlert(false)}
       />
-
-      {/* Floating Menu Button */}
-      <FloatingMenuButton />
     </View>
   )
 }

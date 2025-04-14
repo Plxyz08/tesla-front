@@ -26,7 +26,6 @@ import ErrorMessage from "../../components/ErrorMessage"
 import LogoutConfirmationModal from "../../components/LogoutConfirmationModal"
 import * as ImagePicker from "expo-image-picker"
 import { useCallback } from "react"
-import FloatingMenuButton from "@/components/FloatingMenuButton"
 
 const { width } = Dimensions.get("window")
 
@@ -572,7 +571,7 @@ ${profileData.name}
         onConfirm={confirmLogout}
         userName={profileData.name}
       />
-      <FloatingMenuButton />
+
     </View>
   )
 }
