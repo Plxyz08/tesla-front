@@ -50,10 +50,6 @@ package-lock.json
 /ios/*.xcworkspace
 /ios/*.xcodeproj/project.xcworkspace
 
-# assets
-/assets/icono.ico
-/assets/logo.png
-
 # logs
 *.log
 logs/
