@@ -8,6 +8,7 @@ import { useAuth } from "../context/AuthContext"
 
 interface AppHeaderProps {
   title: string
+  subtitle?: string
   showBackButton?: boolean
   showProfileButton?: boolean
   rightComponent?: React.ReactNode
@@ -15,6 +16,7 @@ interface AppHeaderProps {
 
 const AppHeader: React.FC<AppHeaderProps> = ({
   title,
+  subtitle,
   showBackButton = false,
   showProfileButton = true,
   rightComponent,
@@ -25,7 +27,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   // Determinar el color según el rol del usuario
   const headerColor =
     user?.role === "admin"
-      ? "#7c3aed" // Morado para admin
+      ? "#7c3aed" // Morado principal
       : user?.role === "technician"
         ? "#059669" // Verde para técnicos
         : "#efb810" // Dorado para clientes
@@ -45,8 +47,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             </TouchableOpacity>
           )}
           <View>
-            <Text style={styles.headerTitle}>Bienvenido</Text>
-            <Text style={styles.subTitle}>Tesla Lift App</Text>
+            <Text style={styles.headerTitle}>{title}</Text>
+            {subtitle && <Text style={styles.subTitle}>{subtitle}</Text>}
           </View>
         </View>
 
@@ -88,6 +90,7 @@ const styles = StyleSheet.create({
   leftContainer: {
     flexDirection: "row",
     alignItems: "center",
+    flex: 1,
   },
   rightContainer: {
     flexDirection: "row",
@@ -104,6 +107,7 @@ const styles = StyleSheet.create({
   subTitle: {
     fontSize: 12,
     color: "rgba(255, 255, 255, 0.8)",
+    marginTop: 2,
   },
   profileButton: {
     marginLeft: 12,

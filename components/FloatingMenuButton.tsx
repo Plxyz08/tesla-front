@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
-    marginBottom: 15, // Elevarlo un poco sobre la barra de navegación
+    marginBottom: 55, // Elevarlo un poco sobre la barra de navegación
   },
 })
 

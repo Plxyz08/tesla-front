@@ -25,6 +25,7 @@ export default function AdminDashboardScreen() {
   const activeClients = 28
   const reportsThisMonth = 45
   const pendingReports = 8
+  const pendingMeetings = 5
 
   // Datos simulados para reportes recientes
   const recentReports = [
@@ -48,56 +49,6 @@ export default function AdminDashboardScreen() {
       buildingName: "Hospital Nacional",
       date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
       status: "draft",
-    },
-  ]
-
-  // Datos simulados para técnicos recientes
-  const recentTechnicians = [
-    {
-      id: "1",
-      name: "Carlos Rodríguez",
-      photo: "https://i.pravatar.cc/150?u=a042581f4e29026704d",
-      status: "active",
-      reportsCount: 15,
-    },
-    {
-      id: "2",
-      name: "María López",
-      photo: "https://i.pravatar.cc/150?u=a042581f4e29026705e",
-      status: "active",
-      reportsCount: 12,
-    },
-    {
-      id: "3",
-      name: "Juan Pérez",
-      photo: "https://i.pravatar.cc/150?u=a042581f4e29026706f",
-      status: "inactive",
-      reportsCount: 8,
-    },
-  ]
-
-  // Datos simulados para clientes recientes
-  const recentClients = [
-    {
-      id: "1",
-      name: "Torre Empresarial Lima",
-      buildingsCount: 1,
-      liftsCount: 4,
-      status: "active",
-    },
-    {
-      id: "2",
-      name: "Centro Comercial Plaza",
-      buildingsCount: 2,
-      liftsCount: 8,
-      status: "active",
-    },
-    {
-      id: "3",
-      name: "Hospital Nacional",
-      buildingsCount: 1,
-      liftsCount: 6,
-      status: "pending",
     },
   ]
 
@@ -165,11 +116,15 @@ export default function AdminDashboardScreen() {
 
   return (
     <View style={styles.container}>
-      <AppHeader title="Dashboard" showBackButton={false} rightComponent={<NotificationsButton />} />
+      <AppHeader
+        title={`Bienvenido, ${user?.name || "Administrador"}`}
+        subtitle="Panel de control de Tesla Lift"
+        showBackButton={false}
+        rightComponent={<NotificationsButton />}
+      />
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.welcomeSection}>
-          <Text style={styles.welcomeText}>Bienvenido, {user?.name}</Text>
           <Text style={styles.dateText}>
             {new Date().toLocaleDateString("es-ES", {
               weekday: "long",
@@ -223,14 +178,14 @@ export default function AdminDashboardScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.quickActionCard, styles.purpleGradient]}
-              onPress={() => navigateToScreen("CreateReport")}
+              style={[styles.quickActionCard, styles.orangeGradient]}
+              onPress={() => navigateToScreen("MeetingRequests")}
             >
               <View style={styles.quickActionContent}>
                 <View style={styles.quickActionIcon}>
-                  <Ionicons name="add-circle" size={24} color="white" />
+                  <Ionicons name="calendar" size={24} color="white" />
                 </View>
-                <Text style={styles.quickActionTitle}>Crear Reporte</Text>
+                <Text style={styles.quickActionTitle}>Reuniones</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="white" style={styles.quickActionArrow} />
             </TouchableOpacity>
@@ -272,11 +227,11 @@ export default function AdminDashboardScreen() {
 
             <Card style={styles.statsCard}>
               <Card.Content>
-                <View style={[styles.statsIconContainer, { backgroundColor: "#fff1f2" }]}>
-                  <Ionicons name="alert-circle" size={24} color="#ef4444" />
+                <View style={[styles.statsIconContainer, { backgroundColor: "#fff7ed" }]}>
+                  <Ionicons name="calendar" size={24} color="#f97316" />
                 </View>
-                <Text style={styles.statsValue}>{pendingReports}</Text>
-                <Text style={styles.statsLabel}>Reportes pendientes</Text>
+                <Text style={styles.statsValue}>{pendingMeetings}</Text>
+                <Text style={styles.statsLabel}>Reuniones pendientes</Text>
               </Card.Content>
             </Card>
           </View>
@@ -384,6 +339,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#6b7280",
     marginTop: 4,
+    textTransform: "capitalize",
   },
   quickActionsSection: {
     marginBottom: 24,
@@ -421,6 +377,9 @@ const styles = StyleSheet.create({
   },
   blueGradient: {
     backgroundColor: "#3b82f6",
+  },
+  orangeGradient: {
+    backgroundColor: "#f97316",
   },
   quickActionContent: {
     flexDirection: "column",

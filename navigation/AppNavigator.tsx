@@ -5,9 +5,9 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 import { useAuth } from "../context/AuthContext"
 import { Ionicons } from "@expo/vector-icons"
 import { View, Text, StyleSheet, Platform } from "react-native"
-import { createDrawerNavigator } from "@react-navigation/drawer"
+import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from "@react-navigation/drawer"
 import FloatingMenuButton from "../components/FloatingMenuButton"
-import { DrawerActions } from "@react-navigation/native" // Import DrawerActions
+import { DrawerActions } from "@react-navigation/native"
 
 // Auth Screens
 import LoginScreen from "../screens/auth/LoginScreen"
@@ -33,10 +33,8 @@ import AdminDashboardScreen from "../screens/admin/DashboardScreen"
 import TechniciansList from "../screens/admin/TechniciansList"
 import ClientsList from "../screens/admin/ClientsList"
 import AdminReportsListScreen from "../screens/admin/ReportsList"
-import AdminReportDetailScreen from "../screens/admin/ReportDetail"
 import EditReportScreen from "../screens/admin/EditReport"
-import ReportsModule from "../screens/admin/ReportsModule"
-import CreateReport from "../screens/admin/CreateReportScreen"
+import MeetingRequestsList from "../screens/admin/MeetingRequestsList" // Importamos la nueva pantalla
 
 // Shared Screens
 import MapScreen from "../screens/shared/MapScreen"
@@ -79,6 +77,15 @@ const TabBarLabel = ({ focused, color, label }: { focused: boolean; color: strin
   return <Text style={[styles.tabLabel, { color, opacity: focused ? 1 : 0.8 }]}>{label}</Text>
 }
 
+// Custom Drawer Content
+function CustomDrawerContent(props: any) {
+  return (
+    <DrawerContentScrollView {...props}>
+      <DrawerItemList {...props} />
+    </DrawerContentScrollView>
+  )
+}
+
 // Drawer para opciones adicionales del Cliente
 const ClientDrawerNavigator = () => (
   <Drawer.Navigator
@@ -91,6 +98,7 @@ const ClientDrawerNavigator = () => (
       drawerInactiveTintColor: "#64748b",
       headerShown: false,
     }}
+    drawerContent={(props) => <CustomDrawerContent {...props} />}
   >
     <Drawer.Screen
       name="ClientTabsScreen"
@@ -140,6 +148,14 @@ const ClientDrawerNavigator = () => (
         drawerIcon: ({ color, size }) => <Ionicons name="notifications-outline" size={size} color={color} />,
       }}
     />
+    <Drawer.Screen
+      name="Profile"
+      component={ProfileScreen}
+      options={{
+        title: "Perfil",
+        drawerIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} />,
+      }}
+    />
   </Drawer.Navigator>
 )
 
@@ -155,6 +171,7 @@ const TechnicianDrawerNavigator = () => (
       drawerInactiveTintColor: "#64748b",
       headerShown: false,
     }}
+    drawerContent={(props) => <CustomDrawerContent {...props} />}
   >
     <Drawer.Screen
       name="TechnicianTabsScreen"
@@ -188,6 +205,14 @@ const TechnicianDrawerNavigator = () => (
         drawerIcon: ({ color, size }) => <Ionicons name="notifications-outline" size={size} color={color} />,
       }}
     />
+    <Drawer.Screen
+      name="Profile"
+      component={ProfileScreen}
+      options={{
+        title: "Perfil",
+        drawerIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} />,
+      }}
+    />
   </Drawer.Navigator>
 )
 
@@ -203,6 +228,7 @@ const AdminDrawerNavigator = () => (
       drawerInactiveTintColor: "#64748b",
       headerShown: false,
     }}
+    drawerContent={(props) => <CustomDrawerContent {...props} />}
   >
     <Drawer.Screen
       name="AdminTabsScreen"
@@ -221,27 +247,11 @@ const AdminDrawerNavigator = () => (
       }}
     />
     <Drawer.Screen
-      name="Reportes"
-      component={CreateReport}
+      name="MeetingRequests"
+      component={MeetingRequestsList}
       options={{
-        title: "Crear Reporte",
-        drawerIcon: ({ color, size }) => <Ionicons name="create-outline" size={size} color={color} />,
-      }}
-    />
-    <Drawer.Screen
-      name="ReportsModule"
-      component={ReportsModule}
-      options={{
-        title: "Módulo de Informes",
-        drawerIcon: ({ color, size }) => <Ionicons name="analytics-outline" size={size} color={color} />,
-      }}
-    />
-    <Drawer.Screen
-      name="Detalles"
-      component={AdminReportDetailScreen}
-      options={{
-        title: "Detalles del Reporte",
-        drawerIcon: ({ color, size }) => <Ionicons name="information-circle-outline" size={size} color={color} />,
+        title: "Solicitudes de Reuniones",
+        drawerIcon: ({ color, size }) => <Ionicons name="calendar-outline" size={size} color={color} />,
       }}
     />
     <Drawer.Screen
@@ -250,6 +260,14 @@ const AdminDrawerNavigator = () => (
       options={{
         title: "Notificaciones",
         drawerIcon: ({ color, size }) => <Ionicons name="notifications-outline" size={size} color={color} />,
+      }}
+    />
+    <Drawer.Screen
+      name="Profile"
+      component={ProfileScreen}
+      options={{
+        title: "Perfil",
+        drawerIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} />,
       }}
     />
   </Drawer.Navigator>
@@ -447,12 +465,12 @@ const AdminTabNavigator = () => {
         }}
       />
       <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
+        name="MeetingRequests"
+        component={MeetingRequestsList}
         options={{
-          title: "Perfil",
-          tabBarIcon: ({ focused, color }) => <TabBarIcon focused={focused} color={color} name="person" />,
-          tabBarLabel: ({ focused, color }) => <TabBarLabel focused={focused} color={color} label="Perfil" />,
+          title: "Reuniones",
+          tabBarIcon: ({ focused, color }) => <TabBarIcon focused={focused} color={color} name="calendar" />,
+          tabBarLabel: ({ focused, color }) => <TabBarLabel focused={focused} color={color} label="Reuniones" />,
         }}
       />
     </Tab.Navigator>
@@ -473,8 +491,8 @@ const AppNavigator = () => {
         <Stack.Screen name="Auth" component={AuthNavigator} />
       ) : (
         <>
-          {user.role === "client" && <Stack.Screen name="ClientTabs" component={ClientDrawerNavigator} />}
-          {user.role === "technician" && <Stack.Screen name="TechnicianTabs" component={TechnicianDrawerNavigator} />}
+          {user.role === "client" && <Stack.Screen name="ClientDrawer" component={ClientDrawerNavigator} />}
+          {user.role === "technician" && <Stack.Screen name="TechnicianDrawer" component={TechnicianDrawerNavigator} />}
           {user.role === "admin" && <Stack.Screen name="AdminDrawer" component={AdminDrawerNavigator} />}
 
           {/* Pantallas comunes */}
@@ -512,13 +530,27 @@ const AppNavigator = () => {
                 headerShown: false,
               }}
             />
+            <Stack.Screen
+              name="MeetingRequests"
+              component={MeetingRequestsList}
+              options={{
+                title: "Solicitudes de Reuniones",
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="Profile"
+              component={ProfileScreen}
+              options={{
+                title: "Perfil",
+                headerShown: false,
+              }}
+            />
           </Stack.Group>
 
           {/* Pantallas específicas de administrador */}
           <Stack.Group screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="ReportDetail" component={AdminReportDetailScreen} />
             <Stack.Screen name="EditReport" component={EditReportScreen} />
-            <Stack.Screen name="CreateReport" component={CreateReportScreen} />
           </Stack.Group>
         </>
       )}

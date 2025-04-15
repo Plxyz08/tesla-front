@@ -1,223 +1,305 @@
 "use client"
 
-import React, { useState, useCallback } from "react"
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Platform, StatusBar } from "react-native"
-import { Card, Chip, Divider } from "react-native-paper"
+import { useState } from "react"
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from "react-native"
+import { Card, Button, TextInput, RadioButton } from "react-native-paper"
 import { Ionicons } from "@expo/vector-icons"
 import { useNavigation } from "@react-navigation/native"
+import { useAuth } from "../../context/AuthContext"
 import { useApp } from "../../context/AppContext"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { LinearGradient } from "expo-linear-gradient"
-import Animated, { FadeInDown } from "react-native-reanimated"
+import AlertMessage from "../../components/alertMessage"
+import AppHeader from "../../components/AppHeader"
 
-export default function MaintenanceHistoryScreen() {
+export default function ScheduleMeetingScreen() {
   const navigation = useNavigation<any>()
-  const { maintenances } = useApp()
-  const insets = useSafeAreaInsets()
-  const [refreshing, setRefreshing] = useState(false)
-  const [activeFilter, setActiveFilter] = useState<"all" | "completed" | "scheduled" | "in-progress">("all")
+  const { user } = useAuth()
+  const { addNotification } = useApp()
 
-  // Filter maintenances based on active filter
-  const filteredMaintenances = React.useMemo(() => {
-    if (activeFilter === "all") return maintenances
-    return maintenances.filter((m) => m.status === activeFilter)
-  }, [maintenances, activeFilter])
+  // Estado para el formulario
+  const [meetingType, setMeetingType] = useState("virtual")
+  const [subject, setSubject] = useState("")
+  const [description, setDescription] = useState("")
+  const [preferredDays, setPreferredDays] = useState<string[]>([])
+  const [preferredTimeSlot, setPreferredTimeSlot] = useState("")
 
-  // Handle refresh
-  const onRefresh = useCallback(() => {
-    setRefreshing(true)
-    // Simulate data refresh
-    setTimeout(() => {
-      setRefreshing(false)
-    }, 1500)
-  }, [])
+  // Estado para alertas
+  const [showAlert, setShowAlert] = useState(false)
+  const [alertData, setAlertData] = useState({ title: "", message: "" })
 
-  // Get status color
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "#10b981" // green
-      case "scheduled":
-        return "#0284c7" // blue
-      case "in-progress":
-        return "#f59e0b" // amber
-      default:
-        return "#6b7280" // gray
+  // Estado para validación
+  const [errors, setErrors] = useState({
+    subject: "",
+    preferredDays: "",
+    preferredTimeSlot: "",
+  })
+
+  // Opciones para días preferidos
+  const dayOptions = [
+    { label: "Lunes", value: "monday" },
+    { label: "Martes", value: "tuesday" },
+    { label: "Miércoles", value: "wednesday" },
+    { label: "Jueves", value: "thursday" },
+    { label: "Viernes", value: "friday" },
+  ]
+
+  // Opciones para horarios preferidos
+  const timeSlotOptions = [
+    { label: "Mañana (9:00 - 12:00)", value: "morning" },
+    { label: "Tarde (14:00 - 17:00)", value: "afternoon" },
+  ]
+
+  // Manejar selección de días preferidos
+  const togglePreferredDay = (day: string) => {
+    if (preferredDays.includes(day)) {
+      setPreferredDays(preferredDays.filter((d) => d !== day))
+    } else {
+      setPreferredDays([...preferredDays, day])
     }
+    setErrors({ ...errors, preferredDays: "" })
   }
 
-  // Get status text
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "Completado"
-      case "scheduled":
-        return "Programado"
-      case "in-progress":
-        return "En Progreso"
-      default:
-        return status
+  // Validar formulario
+  const validateForm = () => {
+    let isValid = true
+    const newErrors = { ...errors }
+
+    if (!subject.trim()) {
+      newErrors.subject = "El asunto es requerido"
+      isValid = false
+    } else {
+      newErrors.subject = ""
     }
+
+    if (preferredDays.length === 0) {
+      newErrors.preferredDays = "Seleccione al menos un día preferido"
+      isValid = false
+    } else {
+      newErrors.preferredDays = ""
+    }
+
+    if (!preferredTimeSlot) {
+      newErrors.preferredTimeSlot = "Seleccione un horario preferido"
+      isValid = false
+    } else {
+      newErrors.preferredTimeSlot = ""
+    }
+
+    setErrors(newErrors)
+    return isValid
   }
 
-  // Format date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+  // Enviar solicitud de reunión
+  const handleSubmit = () => {
+    if (!validateForm()) return
+
+    // En una implementación real, esto enviaría datos a una API
+    // Aquí simulamos el proceso
+
+    // Crear notificación para el administrador
+    addNotification({
+      title: "Nueva solicitud de reunión",
+      message: `El cliente ${user?.name} ha solicitado una reunión sobre: ${subject}`,
+      type: "task",
     })
+
+    // Mostrar mensaje de éxito
+    setAlertData({
+      title: "Solicitud Enviada",
+      message:
+        "Su solicitud de reunión ha sido enviada con éxito. Nos pondremos en contacto pronto para confirmar los detalles.",
+    })
+    setShowAlert(true)
+  }
+
+  // Manejar cierre de alerta y navegación
+  const handleAlertClose = () => {
+    setShowAlert(false)
+    navigation.goBack()
+  }
+
+  // Obtener etiqueta del día
+  const getDayLabel = (value: string) => {
+    const option = dayOptions.find((day) => day.value === value)
+    return option ? option.label : value
+  }
+
+  // Obtener etiqueta del horario
+  const getTimeSlotLabel = (value: string) => {
+    const option = timeSlotOptions.find((slot) => slot.value === value)
+    return option ? option.label : value
   }
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#f7be0d" />
+      <AppHeader title="Programar Reunión" subtitle="Solicita una reunión con nuestro equipo" showBackButton={true} />
 
-      {/* Header with gradient */}
-      <LinearGradient colors={["#f7be0d", "#e6a800"]} style={[styles.header, { paddingTop: insets.top + 10 }]}>
-        <View style={styles.headerContent}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Ionicons name="chevron-back" size={24} color="white" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Historial de Mantenimientos</Text>
-          <View style={{ width: 24 }} />
-        </View>
-      </LinearGradient>
+      <ScrollView contentContainerStyle={styles.content}>
+        <Card style={styles.formCard}>
+          <Card.Content>
+            <Text style={styles.sectionTitle}>Detalles de la Reunión</Text>
 
-      {/* Filter tabs */}
-      <View style={styles.filterContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
-          <TouchableOpacity
-            style={[styles.filterChip, activeFilter === "all" && styles.activeFilterChip]}
-            onPress={() => setActiveFilter("all")}
-          >
-            <Text style={[styles.filterChipText, activeFilter === "all" && styles.activeFilterChipText]}>Todos</Text>
-          </TouchableOpacity>
+            {/* Tipo de reunión */}
+            <Text style={styles.inputLabel}>Tipo de Reunión</Text>
+            <View style={styles.radioGroup}>
+              <View style={styles.radioButton}>
+                <RadioButton
+                  value="virtual"
+                  status={meetingType === "virtual" ? "checked" : "unchecked"}
+                  onPress={() => setMeetingType("virtual")}
+                  color="#efb810"
+                />
+                <Text style={styles.radioLabel}>Virtual</Text>
+              </View>
+              <View style={styles.radioButton}>
+                <RadioButton
+                  value="inPerson"
+                  status={meetingType === "inPerson" ? "checked" : "unchecked"}
+                  onPress={() => setMeetingType("inPerson")}
+                  color="#efb810"
+                />
+                <Text style={styles.radioLabel}>Presencial</Text>
+              </View>
+            </View>
 
-          <TouchableOpacity
-            style={[styles.filterChip, activeFilter === "completed" && styles.completedFilterChip]}
-            onPress={() => setActiveFilter("completed")}
-          >
-            <Text style={[styles.filterChipText, activeFilter === "completed" && styles.completedFilterChipText]}>
-              Completados
-            </Text>
-          </TouchableOpacity>
+            {/* Asunto */}
+            <TextInput
+              label="Asunto *"
+              value={subject}
+              onChangeText={(text) => {
+                setSubject(text)
+                if (text.trim()) setErrors({ ...errors, subject: "" })
+              }}
+              mode="outlined"
+              style={styles.input}
+              error={!!errors.subject}
+              outlineColor="#e5e7eb"
+              activeOutlineColor="#efb810"
+            />
+            {errors.subject ? <Text style={styles.errorText}>{errors.subject}</Text> : null}
 
-          <TouchableOpacity
-            style={[styles.filterChip, activeFilter === "scheduled" && styles.scheduledFilterChip]}
-            onPress={() => setActiveFilter("scheduled")}
-          >
-            <Text style={[styles.filterChipText, activeFilter === "scheduled" && styles.scheduledFilterChipText]}>
-              Programados
-            </Text>
-          </TouchableOpacity>
+            {/* Descripción */}
+            <TextInput
+              label="Descripción (opcional)"
+              value={description}
+              onChangeText={setDescription}
+              mode="outlined"
+              multiline
+              numberOfLines={4}
+              style={[styles.input, styles.textArea]}
+              outlineColor="#e5e7eb"
+              activeOutlineColor="#efb810"
+            />
 
-          <TouchableOpacity
-            style={[styles.filterChip, activeFilter === "in-progress" && styles.inProgressFilterChip]}
-            onPress={() => setActiveFilter("in-progress")}
-          >
-            <Text style={[styles.filterChipText, activeFilter === "in-progress" && styles.inProgressFilterChipText]}>
-              En Progreso
-            </Text>
-          </TouchableOpacity>
-        </ScrollView>
+            {/* Disponibilidad */}
+            <Text style={styles.sectionSubtitle}>Disponibilidad</Text>
+
+            <Text style={styles.inputLabel}>Seleccione días preferidos *</Text>
+            <View style={styles.daysGrid}>
+              {dayOptions.map((day) => (
+                <TouchableOpacity
+                  key={day.value}
+                  style={[styles.dayChip, preferredDays.includes(day.value) ? styles.selectedDayChip : null]}
+                  onPress={() => togglePreferredDay(day.value)}
+                >
+                  <Text
+                    style={[styles.dayChipText, preferredDays.includes(day.value) ? styles.selectedDayChipText : null]}
+                  >
+                    {day.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            {errors.preferredDays ? <Text style={styles.errorText}>{errors.preferredDays}</Text> : null}
+
+            <Text style={styles.inputLabel}>Horario preferido *</Text>
+            <View style={styles.timeSlotContainer}>
+              {timeSlotOptions.map((slot) => (
+                <TouchableOpacity
+                  key={slot.value}
+                  style={[styles.timeSlotButton, preferredTimeSlot === slot.value ? styles.selectedTimeSlot : null]}
+                  onPress={() => {
+                    setPreferredTimeSlot(slot.value)
+                    setErrors({ ...errors, preferredTimeSlot: "" })
+                  }}
+                >
+                  <Text
+                    style={[styles.timeSlotText, preferredTimeSlot === slot.value ? styles.selectedTimeSlotText : null]}
+                  >
+                    {slot.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            {errors.preferredTimeSlot ? <Text style={styles.errorText}>{errors.preferredTimeSlot}</Text> : null}
+
+            {/* Resumen */}
+            <View style={styles.summaryContainer}>
+              <Text style={styles.summaryTitle}>Resumen de la Solicitud</Text>
+
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryLabel}>Tipo de reunión:</Text>
+                <Text style={styles.summaryValue}>{meetingType === "virtual" ? "Virtual" : "Presencial"}</Text>
+              </View>
+
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryLabel}>Asunto:</Text>
+                <Text style={styles.summaryValue}>{subject}</Text>
+              </View>
+
+              {description.trim() && (
+                <View style={styles.summaryDescriptionContainer}>
+                  <Text style={styles.summaryLabel}>Descripción:</Text>
+                  <Text style={styles.summaryDescription}>{description}</Text>
+                </View>
+              )}
+
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryLabel}>Días preferidos:</Text>
+                <View style={styles.summaryDaysContainer}>
+                  {preferredDays.map((day, index) => (
+                    <Text key={day} style={styles.summaryDayValue}>
+                      {getDayLabel(day)}
+                      {index < preferredDays.length - 1 ? ", " : ""}
+                    </Text>
+                  ))}
+                </View>
+              </View>
+
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryLabel}>Franja horaria:</Text>
+                <Text style={styles.summaryValue}>{preferredTimeSlot ? getTimeSlotLabel(preferredTimeSlot) : ""}</Text>
+              </View>
+            </View>
+
+            {/* Información adicional */}
+            <View style={styles.infoContainer}>
+              <Ionicons name="information-circle" size={20} color="#6b7280" />
+              <Text style={styles.infoText}>
+                Las reuniones están sujetas a disponibilidad. Un administrador confirmará la fecha y hora exacta de la
+                reunión.
+              </Text>
+            </View>
+          </Card.Content>
+        </Card>
+      </ScrollView>
+
+      {/* Botones de acción */}
+      <View style={styles.footer}>
+        <Button mode="outlined" textColor="#6b7280" style={styles.cancelButton} onPress={() => navigation.goBack()}>
+          Cancelar
+        </Button>
+        <Button mode="contained" buttonColor="#efb810" style={styles.submitButton} onPress={handleSubmit}>
+          Enviar Solicitud
+        </Button>
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#f7be0d"]} />}
-        showsVerticalScrollIndicator={false}
-      >
-        {filteredMaintenances.length > 0 ? (
-          filteredMaintenances.map((maintenance, index) => (
-            <Animated.View key={maintenance.id} entering={FadeInDown.duration(400).delay(index * 100)}>
-              <Card style={styles.maintenanceCard}>
-                <Card.Content>
-                  <View style={styles.cardHeader}>
-                    <View style={styles.dateContainer}>
-                      <Text style={styles.dateText}>{formatDate(maintenance.scheduledDate.toString())}</Text>
-                      <Chip
-                        style={[styles.statusChip, { backgroundColor: `${getStatusColor(maintenance.status)}20` }]}
-                        textStyle={{ color: getStatusColor(maintenance.status) }}
-                      >
-                        {getStatusText(maintenance.status)}
-                      </Chip>
-                    </View>
-                  </View>
-
-                  <Divider style={styles.divider} />
-
-                  <View style={styles.maintenanceDetails}>
-                    <View style={styles.detailRow}>
-                      <Ionicons name="construct" size={20} color="#f7be0d" />
-                      <Text style={styles.detailText}>{maintenance.type || "Mantenimiento preventivo"}</Text>
-                    </View>
-
-                    <View style={styles.detailRow}>
-                      <Ionicons name="time" size={20} color="#f7be0d" />
-                      <Text style={styles.detailText}>
-                        {new Date(maintenance.scheduledDate).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </Text>
-                    </View>
-
-                    {maintenance.technicianName && (
-                      <View style={styles.detailRow}>
-                        <Ionicons name="person" size={20} color="#0284c7" />
-                        <Text style={styles.detailText}>Técnico: {maintenance.technicianName}</Text>
-                      </View>
-                    )}
-
-                    {maintenance.notes && (
-                      <View style={styles.detailRow}>
-                        <Ionicons name="document-text" size={20} color="#0284c7" />
-                        <Text style={styles.detailText}>{maintenance.notes}</Text>
-                      </View>
-                    )}
-                  </View>
-
-                  {maintenance.status === "completed" && (
-                    <View style={styles.completionInfo}>
-                      <View style={styles.completionHeader}>
-                        <Ionicons name="checkmark-circle" size={20} color="#10b981" />
-                        <Text style={styles.completionTitle}>Detalles de Finalización</Text>
-                      </View>
-
-                      <View style={styles.completionDetails}>
-                        {maintenance.completionDate && (
-                          <Text style={styles.completionText}>
-                            Completado el:{" "}
-                            {maintenance.completionDate
-                              ? new Date(maintenance.completionDate.toString()).toLocaleDateString()
-                              : "Fecha no disponible"}
-                          </Text>
-                        )}
-
-                        {maintenance.duration && (
-                          <Text style={styles.completionText}>Duración: {maintenance.duration} minutos</Text>
-                        )}
-                      </View>
-                    </View>
-                  )}
-                </Card.Content>
-              </Card>
-            </Animated.View>
-          ))
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="calendar-outline" size={64} color="#d1d5db" />
-            <Text style={styles.emptyText}>No hay mantenimientos para mostrar</Text>
-            <Text style={styles.emptySubtext}>
-              {activeFilter === "all"
-                ? "No se encontraron registros de mantenimiento"
-                : `No hay mantenimientos con estado "${getStatusText(activeFilter)}"`}
-            </Text>
-          </View>
-        )}
-      </ScrollView>
+      {/* Alerta de éxito */}
+      <AlertMessage
+        visible={showAlert}
+        title={alertData.title}
+        message={alertData.message}
+        onClose={handleAlertClose}
+      />
     </View>
   )
 }
@@ -225,106 +307,13 @@ export default function MaintenanceHistoryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f7fa",
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
-  },
-  headerContent: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "white",
-  },
-  filterContainer: {
-    backgroundColor: "white",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-  },
-  filterScroll: {
-    paddingRight: 16,
-  },
-  filterChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: "#f3f4f6",
-    marginRight: 8,
-  },
-  activeFilterChip: {
-    backgroundColor: "#f7be0d",
-  },
-  completedFilterChip: {
-    backgroundColor: "#d1fae5",
-  },
-  scheduledFilterChip: {
-    backgroundColor: "#fff8e1",
-  },
-  inProgressFilterChip: {
-    backgroundColor: "#fef3c7",
-  },
-  filterChipText: {
-    fontSize: 14,
-    color: "#4b5563",
-    fontWeight: "500",
-  },
-  activeFilterChipText: {
-    color: "white",
-  },
-  completedFilterChipText: {
-    color: "#10b981",
-  },
-  scheduledFilterChipText: {
-    color: "#f7be0d",
-  },
-  inProgressFilterChipText: {
-    color: "#f59e0b",
+    backgroundColor: "#f9fafb",
   },
   content: {
     padding: 16,
-    paddingBottom: 32,
+    paddingBottom: 100, // Extra padding for footer
   },
-  maintenanceCard: {
-    marginBottom: 16,
+  formCard: {
     borderRadius: 12,
     ...Platform.select({
       ios: {
@@ -334,89 +323,192 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
       },
       android: {
-        elevation: 3,
+        elevation: 2,
       },
     }),
   },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#1f2937",
+    marginBottom: 16,
+  },
+  sectionSubtitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1f2937",
+    marginTop: 24,
     marginBottom: 12,
   },
-  dateContainer: {
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  inputLabel: {
+    fontSize: 14,
+    color: "#6b7280",
+    marginBottom: 8,
   },
-  dateText: {
+  radioGroup: {
+    flexDirection: "row",
+    marginBottom: 16,
+  },
+  radioButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 24,
+  },
+  radioLabel: {
+    fontSize: 16,
+    color: "#1f2937",
+  },
+  input: {
+    marginBottom: 16,
+    backgroundColor: "white",
+  },
+  textArea: {
+    minHeight: 100,
+  },
+  daysGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginBottom: 16,
+  },
+  dayChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: "#f3f4f6",
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  selectedDayChip: {
+    backgroundColor: "#efb810",
+  },
+  dayChipText: {
+    color: "#4b5563",
+    fontWeight: "500",
+  },
+  selectedDayChipText: {
+    color: "white",
+  },
+  timeSlotContainer: {
+    marginBottom: 16,
+  },
+  timeSlotButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: "#f3f4f6",
+    marginBottom: 8,
+  },
+  selectedTimeSlot: {
+    backgroundColor: "#efb810",
+  },
+  timeSlotText: {
+    color: "#4b5563",
+    fontWeight: "500",
+  },
+  selectedTimeSlotText: {
+    color: "white",
+  },
+  summaryContainer: {
+    backgroundColor: "#f9fafb",
+    borderRadius: 12,
+    padding: 16,
+    marginVertical: 16,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  summaryTitle: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#1f2937",
-  },
-  statusChip: {
-    height: 28,
-  },
-  divider: {
     marginBottom: 16,
   },
-  maintenanceDetails: {
-    marginBottom: 16,
-  },
-  detailRow: {
+  summaryItem: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 12,
   },
-  detailText: {
-    marginLeft: 12,
-    color: "#4b5563",
-    fontSize: 15,
-    flex: 1,
-  },
-  completionInfo: {
-    backgroundColor: "#f0fdf4",
-    padding: 16,
-    borderRadius: 12,
-  },
-  completionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  completionTitle: {
-    marginLeft: 8,
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#10b981",
-  },
-  completionDetails: {
-    paddingLeft: 28,
-  },
-  completionText: {
-    color: "#374151",
-    marginBottom: 8,
+  summaryLabel: {
     fontSize: 14,
-  },
-  emptyContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 40,
-    marginTop: 40,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: "600",
     color: "#6b7280",
-    marginTop: 16,
-    marginBottom: 8,
+    fontWeight: "500",
   },
-  emptySubtext: {
+  summaryValue: {
     fontSize: 14,
-    color: "#9ca3af",
-    textAlign: "center",
-    maxWidth: "80%",
+    color: "#1f2937",
+    fontWeight: "600",
+    maxWidth: "60%",
+    textAlign: "right",
+  },
+  summaryDaysContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    flex: 1,
+    justifyContent: "flex-end",
+  },
+  summaryDayValue: {
+    fontSize: 14,
+    color: "#1f2937",
+    fontWeight: "600",
+  },
+  summaryDescriptionContainer: {
+    marginBottom: 12,
+  },
+  summaryDescription: {
+    fontSize: 14,
+    color: "#1f2937",
+    marginTop: 8,
+    lineHeight: 20,
+  },
+  infoContainer: {
+    flexDirection: "row",
+    backgroundColor: "#fff7e6",
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  infoText: {
+    marginLeft: 8,
+    color: "#6b7280",
+    flex: 1,
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  footer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    padding: 16,
+    backgroundColor: "white",
+    borderTopWidth: 1,
+    borderTopColor: "#e5e7eb",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  cancelButton: {
+    flex: 1,
+    marginRight: 8,
+    borderColor: "#d1d5db",
+  },
+  submitButton: {
+    flex: 1,
+    marginLeft: 8,
+  },
+  errorText: {
+    color: "#ef4444",
+    fontSize: 12,
+    marginTop: -12,
+    marginBottom: 16,
   },
 })
-

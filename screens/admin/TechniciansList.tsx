@@ -5,7 +5,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Alert } from
 import { Searchbar, Card, Button, Chip, FAB, Dialog, Portal, Divider, Menu } from "react-native-paper"
 import { Ionicons } from "@expo/vector-icons"
 import { useNavigation } from "@react-navigation/native"
-
+import AppHeader from "../../components/AppHeader"
 
 interface Technician {
   id: string
@@ -221,6 +221,17 @@ export default function TechniciansList() {
     }
   }
 
+  // Componente para el botón de filtro en el header
+  const FilterButton = () => (
+    <TouchableOpacity
+      style={styles.filterButton}
+      onPress={() => setFilterMenuVisible(true)}
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+    >
+      <Ionicons name="options-outline" size={22} color="white" />
+    </TouchableOpacity>
+  )
+
   const renderItem = ({ item }: { item: Technician }) => (
     <Card style={styles.technicianCard}>
       <Card.Content>
@@ -286,12 +297,12 @@ export default function TechniciansList() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Técnicos</Text>
-        <TouchableOpacity onPress={() => setFilterMenuVisible(true)}>
-          <Ionicons name="options" size={24} color="#7c3aed" />
-        </TouchableOpacity>
-      </View>
+      <AppHeader
+        title="Lista de Técnicos"
+        subtitle="Gestiona todos los técnicos de Tesla Lift"
+        showBackButton={true}
+        rightComponent={<FilterButton />}
+      />
 
       <View style={styles.searchContainer}>
         <Searchbar
@@ -460,20 +471,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f9fafb",
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  filterButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 16,
-    backgroundColor: "#7c3aed",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "white",
-    marginTop: 20,
   },
   searchContainer: {
     padding: 16,
@@ -501,6 +505,7 @@ const styles = StyleSheet.create({
   technicianCard: {
     marginBottom: 16,
     borderRadius: 12,
+    elevation: 2,
   },
   technicianHeader: {
     flexDirection: "row",
@@ -567,6 +572,7 @@ const styles = StyleSheet.create({
   actionButton: {
     flex: 1,
     marginHorizontal: 4,
+    borderRadius: 8,
   },
   fab: {
     position: "absolute",
@@ -574,6 +580,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: "#7c3aed",
+    borderRadius: 28,
   },
   emptyContainer: {
     alignItems: "center",
@@ -588,7 +595,7 @@ const styles = StyleSheet.create({
   },
   filterMenu: {
     padding: 16,
-    marginTop: 50,
+    marginTop: 10,
     width: "80%",
   },
   filterTitle: {
@@ -624,6 +631,7 @@ const styles = StyleSheet.create({
   },
   applyFiltersButton: {
     marginTop: 8,
+    borderRadius: 8,
   },
   warningText: {
     color: "#ef4444",

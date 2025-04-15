@@ -5,7 +5,8 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from "react
 import { Searchbar, Card, Button, Chip, FAB, Dialog, Portal, Divider, Menu } from "react-native-paper"
 import { Ionicons } from "@expo/vector-icons"
 import { useNavigation } from "@react-navigation/native"
-
+import AppHeader from "../../components/AppHeader"
+import { useAuth } from "../../context/AuthContext"
 
 interface Client {
   id: string
@@ -25,6 +26,7 @@ interface Client {
 
 export default function ClientsList() {
   const navigation = useNavigation<any>()
+  const { user } = useAuth()
   const [searchQuery, setSearchQuery] = useState("")
   const [clients, setClients] = useState<Client[]>([])
   const [filteredClients, setFilteredClients] = useState<Client[]>([])
@@ -266,6 +268,17 @@ export default function ClientsList() {
     }
   }
 
+  // Componente para el botón de filtro en el header
+  const FilterButton = () => (
+    <TouchableOpacity
+      style={styles.filterButton}
+      onPress={() => setFilterMenuVisible(true)}
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+    >
+      <Ionicons name="options" size={20} color="white" />
+    </TouchableOpacity>
+  )
+
   const renderItem = ({ item }: { item: Client }) => (
     <Card style={styles.clientCard}>
       <Card.Content>
@@ -355,12 +368,12 @@ export default function ClientsList() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Clientes</Text>
-        <TouchableOpacity onPress={() => setFilterMenuVisible(true)}>
-          <Ionicons name="options" size={24} color="#7c3aed" />
-        </TouchableOpacity>
-      </View>
+      <AppHeader
+        title="Lista de Clientes"
+        subtitle="Gestiona todos los clientes de Tesla Lift"
+        showBackButton={true}
+        rightComponent={<FilterButton />}
+      />
 
       <View style={styles.searchContainer}>
         <Searchbar
@@ -601,20 +614,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f9fafb",
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  filterButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 16,
-    backgroundColor: "#7c3aed",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "white",
-    marginTop: 20,
   },
   searchContainer: {
     padding: 16,
@@ -642,6 +648,7 @@ const styles = StyleSheet.create({
   clientCard: {
     marginBottom: 16,
     borderRadius: 12,
+    elevation: 2,
   },
   clientHeader: {
     flexDirection: "row",
@@ -720,6 +727,7 @@ const styles = StyleSheet.create({
   actionButton: {
     flex: 1,
     marginHorizontal: 4,
+    borderRadius: 8,
   },
   fab: {
     position: "absolute",
@@ -727,6 +735,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: "#7c3aed",
+    borderRadius: 28,
   },
   emptyContainer: {
     alignItems: "center",
@@ -777,10 +786,10 @@ const styles = StyleSheet.create({
   },
   applyFiltersButton: {
     marginTop: 8,
+    borderRadius: 8,
   },
   warningText: {
     color: "#ef4444",
     marginTop: 8,
   },
 })
-
