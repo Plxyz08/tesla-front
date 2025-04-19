@@ -24,6 +24,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>
   logout: () => void
   updateUserProfile: (data: Partial<User>) => Promise<User>
+  register: (userData: any, role: UserRole) => Promise<boolean>
 }
 
 // Create context
@@ -145,6 +146,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
+  // Register function
+  const register = async (userData: any, role: UserRole): Promise<boolean> => {
+    setIsLoading(true)
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      // Create a new user object
+      const newUser: User = {
+        id: `user-${Date.now()}`,
+        name: userData.name,
+        email: userData.email,
+        role: role,
+        profileImage: userData.profileImage,
+        phone: userData.phone,
+      }
+
+      // Save user data to secure storage
+      await SecureStore.setItemAsync("user", JSON.stringify(newUser))
+
+      // Update state
+      setUser(newUser)
+      setIsAuthenticated(true)
+
+      return true
+    } catch (error) {
+      console.error("Registration error:", error)
+      Alert.alert("Error", "No se pudo completar el registro. Inténtalo de nuevo.")
+      return false
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   // Context value
   const value = {
     user,
@@ -153,6 +188,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     logout,
     updateUserProfile,
+    register,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
@@ -168,4 +204,3 @@ export const useAuth = () => {
 
   return context
 }
-

@@ -17,9 +17,10 @@ import { Ionicons } from "@expo/vector-icons"
 import { useNavigation } from "@react-navigation/native"
 import AppHeader from "../../components/AppHeader"
 import { useAuth } from "../../context/AuthContext"
-import DateTimePicker from "@react-native-community/datetimepicker"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
+import AlertMessage from "../../components/alertMessage"
+import ErrorMessage from "../../components/ErrorMessage"
 
 // Tipo para las solicitudes de reunión
 interface MeetingRequest {
@@ -161,11 +162,15 @@ const MeetingRequestsList: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<string>("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedRequest, setSelectedRequest] = useState<MeetingRequest | null>(null)
-  const [showDatePicker, setShowDatePicker] = useState(false)
-  const [showTimePicker, setShowTimePicker] = useState(false)
-  const [confirmationDate, setConfirmationDate] = useState(new Date())
-  const [confirmationTime, setConfirmationTime] = useState(new Date())
-  const [confirmationNotes, setConfirmationNotes] = useState("")
+  const [alertVisible, setAlertVisible] = useState(false)
+  const [alertData, setAlertData] = useState({ title: "", message: "" })
+  const [errorVisible, setErrorVisible] = useState(false)
+  const [errorData, setErrorData] = useState({ title: "", message: "" })
+
+  const showAlertMessage = (title: string, message: string) => {
+    setAlertData({ title, message })
+    setAlertVisible(true)
+  }
 
   // Cargar datos de solicitudes (simulado)
   useEffect(() => {
@@ -200,74 +205,44 @@ const MeetingRequestsList: React.FC = () => {
     setFilteredRequests(filtered)
   }, [activeFilter, searchQuery, meetingRequests])
 
-  // Manejar la confirmación de una reunión
-  const handleConfirmMeeting = () => {
-    if (!selectedRequest) return
+  const confirmDeleteClient = () => {
+    // En una aplicación real, esto enviaría una solicitud a la API
+    showAlertMessage("Éxito", `Cliente ${selectedRequest?.clientName} eliminado correctamente`)
+    //setDeleteDialogVisible(false)
 
-    // Combinar fecha y hora seleccionadas
-    const combinedDateTime = new Date(confirmationDate)
-    combinedDateTime.setHours(confirmationTime.getHours())
-    combinedDateTime.setMinutes(confirmationTime.getMinutes())
-
-    // Actualizar el estado de la solicitud (en producción, esto sería una llamada a la API)
-    const updatedRequests = meetingRequests.map((request) => {
-      if (request.id === selectedRequest.id) {
-        return {
-          ...request,
-          status: "confirmed" as const,
-          confirmationDate: combinedDateTime,
-          notes: confirmationNotes || request.notes,
-        }
-      }
-      return request
-    })
-
-    setMeetingRequests(updatedRequests)
-
-    // Mostrar confirmación al usuario
-    Alert.alert(
-      "Reunión Confirmada",
-      `La reunión con ${selectedRequest.clientName} ha sido programada para el ${format(
-        combinedDateTime,
-        "PPP 'a las' p",
-        {
-          locale: es,
-        },
-      )}`,
-      [{ text: "OK" }],
-    )
-
-    // Limpiar el estado
-    setSelectedRequest(null)
-    setConfirmationNotes("")
+    // Actualizar la lista de clientes (simulado)
+    //const updatedClients = clients.filter((client) => client.id !== selectedClient?.id)
+    //setClients(updatedClients)
   }
 
   // Manejar la cancelación de una reunión
-  const handleCancelMeeting = (request: MeetingRequest) => {
-    Alert.alert("Cancelar Solicitud", `¿Estás seguro de que deseas cancelar la solicitud de ${request.clientName}?`, [
-      { text: "No", style: "cancel" },
-      {
-        text: "Sí, Cancelar",
-        style: "destructive",
-        onPress: () => {
-          // Actualizar el estado de la solicitud (en producción, esto sería una llamada a la API)
-          const updatedRequests = meetingRequests.map((item) => {
-            if (item.id === request.id) {
-              return {
-                ...item,
-                status: "cancelled" as const,
-              }
-            }
-            return item
-          })
-
-          setMeetingRequests(updatedRequests)
-
-          // Mostrar confirmación al usuario
-          Alert.alert("Solicitud Cancelada", "La solicitud ha sido cancelada correctamente.")
+  const handleCancelMeeting = (item: MeetingRequest) => {
+    Alert.alert(
+      "Cancelar Solicitud",
+      `¿Estás seguro de que quieres cancelar la solicitud de ${item.clientName}?`,
+      [
+        {
+          text: "No",
+          style: "cancel",
         },
-      },
-    ])
+        {
+          text: "Sí, Cancelar",
+          onPress: () => {
+            // Aquí iría la lógica para cancelar la reunión en la base de datos
+            // Por ahora, simplemente actualizamos el estado localmente
+            const updatedRequests = meetingRequests.map((request) =>
+              request.id === item.id ? { ...request, status: "cancelled" } as MeetingRequest : request,
+            )
+            setMeetingRequests(updatedRequests)
+            setFilteredRequests(
+              updatedRequests.filter((req) => (activeFilter === "all" ? true : req.status === activeFilter)),
+            )
+            showAlertMessage("Solicitud Cancelada", `La solicitud de ${item.clientName} ha sido cancelada.`)
+          },
+        },
+      ],
+      { cancelable: false },
+    )
   }
 
   // Renderizar cada elemento de la lista de solicitudes
@@ -367,34 +342,6 @@ const MeetingRequestsList: React.FC = () => {
         </View>
 
         <View style={styles.actionButtons}>
-          {item.status === "pending" && (
-            <TouchableOpacity
-              style={[styles.actionButton, styles.confirmButton]}
-              onPress={() => {
-                setSelectedRequest(item)
-                setConfirmationDate(new Date())
-                setConfirmationTime(new Date())
-                setConfirmationNotes("")
-              }}
-            >
-              <Ionicons name="checkmark-circle-outline" size={18} color="white" />
-              <Text style={styles.actionButtonText}>Confirmar</Text>
-            </TouchableOpacity>
-          )}
-
-          {(item.status === "pending" || item.status === "confirmed") && (
-            <TouchableOpacity
-              style={[styles.actionButton, styles.rescheduleButton]}
-              onPress={() => {
-                // Aquí iría la lógica para reagendar
-                Alert.alert("Reagendar", "Funcionalidad de reagendación en desarrollo")
-              }}
-            >
-              <Ionicons name="calendar-outline" size={18} color="white" />
-              <Text style={styles.actionButtonText}>Reagendar</Text>
-            </TouchableOpacity>
-          )}
-
           {item.status !== "cancelled" && (
             <TouchableOpacity
               style={[styles.actionButton, styles.cancelButton]}
@@ -410,96 +357,6 @@ const MeetingRequestsList: React.FC = () => {
   }
 
   // Renderizar el componente de confirmación de reunión
-  const renderConfirmationModal = () => {
-    if (!selectedRequest) return null
-
-    return (
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Confirmar Reunión</Text>
-            <TouchableOpacity style={styles.closeButton} onPress={() => setSelectedRequest(null)}>
-              <Ionicons name="close" size={24} color="#6b7280" />
-            </TouchableOpacity>
-          </View>
-
-          <Text style={styles.modalClientName}>{selectedRequest.clientName}</Text>
-          <Text style={styles.modalReason}>{selectedRequest.reason}</Text>
-
-          <View style={styles.datePickerContainer}>
-            <Text style={styles.datePickerLabel}>Fecha de la reunión:</Text>
-            <TouchableOpacity style={styles.datePickerButton} onPress={() => setShowDatePicker(true)}>
-              <Ionicons name="calendar-outline" size={20} color="#7c3aed" />
-              <Text style={styles.datePickerButtonText}>
-                {format(confirmationDate, "EEEE d 'de' MMMM 'de' yyyy", { locale: es })}
-              </Text>
-            </TouchableOpacity>
-
-            {showDatePicker && (
-              <DateTimePicker
-                value={confirmationDate}
-                mode="date"
-                display="default"
-                onChange={(event, selectedDate) => {
-                  setShowDatePicker(false)
-                  if (selectedDate) {
-                    setConfirmationDate(selectedDate)
-                  }
-                }}
-                minimumDate={new Date()}
-              />
-            )}
-          </View>
-
-          <View style={styles.timePickerContainer}>
-            <Text style={styles.timePickerLabel}>Hora de la reunión:</Text>
-            <TouchableOpacity style={styles.timePickerButton} onPress={() => setShowTimePicker(true)}>
-              <Ionicons name="time-outline" size={20} color="#7c3aed" />
-              <Text style={styles.timePickerButtonText}>{format(confirmationTime, "h:mm a", { locale: es })}</Text>
-            </TouchableOpacity>
-
-            {showTimePicker && (
-              <DateTimePicker
-                value={confirmationTime}
-                mode="time"
-                display="default"
-                onChange={(event, selectedTime) => {
-                  setShowTimePicker(false)
-                  if (selectedTime) {
-                    setConfirmationTime(selectedTime)
-                  }
-                }}
-              />
-            )}
-          </View>
-
-          <View style={styles.notesInputContainer}>
-            <Text style={styles.notesInputLabel}>Notas adicionales:</Text>
-            <TextInput
-              style={styles.notesInput}
-              placeholder="Añade notas o instrucciones para el cliente"
-              multiline
-              numberOfLines={3}
-              value={confirmationNotes}
-              onChangeText={setConfirmationNotes}
-            />
-          </View>
-
-          <View style={styles.modalActions}>
-            <TouchableOpacity
-              style={[styles.modalButton, styles.cancelModalButton]}
-              onPress={() => setSelectedRequest(null)}
-            >
-              <Text style={styles.cancelModalButtonText}>Cancelar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.modalButton, styles.confirmModalButton]} onPress={handleConfirmMeeting}>
-              <Text style={styles.confirmModalButtonText}>Confirmar Reunión</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    )
-  }
 
   // Componente para los filtros de estado
   const StatusFilter = () => {
@@ -507,7 +364,6 @@ const MeetingRequestsList: React.FC = () => {
       { id: "all", label: "Todas" },
       { id: "pending", label: "Pendientes" },
       { id: "confirmed", label: "Confirmadas" },
-      { id: "rescheduled", label: "Reagendadas" },
       { id: "cancelled", label: "Canceladas" },
     ]
 
@@ -596,7 +452,18 @@ const MeetingRequestsList: React.FC = () => {
         />
       )}
 
-      {selectedRequest && renderConfirmationModal()}
+      <AlertMessage
+        visible={alertVisible}
+        title={alertData.title}
+        message={alertData.message}
+        onClose={() => setAlertVisible(false)}
+      />
+      <ErrorMessage
+        visible={errorVisible}
+        title={errorData.title}
+        message={errorData.message}
+        onClose={() => setErrorVisible(false)}
+      />
     </View>
   )
 }
@@ -929,18 +796,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#4b5563",
     marginBottom: 8,
-  },
-  timePickerButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f3f4f6",
-    padding: 12,
-    borderRadius: 8,
-  },
-  timePickerButtonText: {
-    fontSize: 16,
-    color: "#1f2937",
-    marginLeft: 8,
   },
   notesInputContainer: {
     marginBottom: 20,

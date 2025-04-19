@@ -79,7 +79,7 @@ export interface Report {
   createdAt: string
   updatedAt: string
   pdfUrl?: string
-  technicianName?: string; // Added property
+  technicianName?: string // Added property
 }
 
 // Report section data model

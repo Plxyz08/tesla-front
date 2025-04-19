@@ -133,7 +133,8 @@ export default function TechniciansList() {
   const onChangeSearch = (query: string) => setSearchQuery(query)
 
   const handleAddTechnician = () => {
-    navigation.navigate("EditTechnician")
+    // Add this line inside the handleAddTechnician function:
+    navigation.navigate("CreateUser")
   }
 
   const handleEditTechnician = (technician: Technician) => {
@@ -147,7 +148,9 @@ export default function TechniciansList() {
 
   const confirmDeleteTechnician = () => {
     // En una aplicación real, esto enviaría una solicitud a la API
-    Alert.alert("Éxito", `Técnico ${selectedTechnician?.name} eliminado correctamente`)
+    Alert.alert("Éxito", `Técnico ${selectedTechnician?.name} eliminado correctamente`, [
+      { text: "OK", onPress: () => navigation.navigate("TechniciansList" as never) },
+    ])
     setDeleteDialogVisible(false)
 
     // Actualizar la lista de técnicos (simulado)
@@ -638,4 +641,3 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 })
-

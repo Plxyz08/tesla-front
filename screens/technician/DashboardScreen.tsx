@@ -10,22 +10,20 @@ import {
   RefreshControl,
   Dimensions,
   Platform,
-  Image,
 } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { Card, Chip, Divider, ActivityIndicator, Button } from "react-native-paper"
 import { useNavigation, useFocusEffect } from "@react-navigation/native"
 import { useAuth } from "../../context/AuthContext"
-import { LinearGradient } from "expo-linear-gradient"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import Animated, { FadeInDown } from "react-native-reanimated"
 import technicianApi from "../../services/technicianApi"
-import { type WorkSession, type TechnicianStats, type Report, getReportSheetForMonth } from "../../models/technician"
+import { type Report, getReportSheetForMonth } from "../../models/technician"
 import * as Location from "expo-location"
 import FutureFeatureModal from "../../components/FutureFeatureModal"
-import { StatusBar } from "expo-status-bar"
 import AlertMessage from "../../components/alertMessage"
 import ErrorMessage from "../../components/ErrorMessage"
+import AppHeader from "../../components/AppHeader"
 
 const { width } = Dimensions.get("window")
 
@@ -64,15 +62,15 @@ export default function TechnicianDashboardScreen() {
   const [recentReports, setRecentReports] = useState<Report[]>([])
 
   // Time tracking state
-  const [isClockedIn, setIsClockedIn] = useState(false)
-  const [isOnBreak, setIsOnBreak] = useState(false)
-  const [currentSession, setCurrentSession] = useState<WorkSession | null>(null)
-  const [elapsedTime, setElapsedTime] = useState(0) // in seconds
-  const [breakTime, setBreakTime] = useState(0) // in seconds
-  const [isClockingIn, setIsClockingIn] = useState(false)
-  const [isClockingOut, setIsClockingOut] = useState(false)
-  const [isTogglingBreak, setIsTogglingBreak] = useState(false)
-  const [technicianStats, setTechnicianStats] = useState<TechnicianStats | null>(null)
+  // const [isClockedIn, setIsClockedIn] = useState(false)
+  // const [isOnBreak, setIsOnBreak] = useState(false)
+  // const [currentSession, setCurrentSession] = useState<WorkSession | null>(null)
+  // const [elapsedTime, setElapsedTime] = useState(0) // in seconds
+  // const [breakTime, setBreakTime] = useState(0) // in seconds
+  // const [isClockingIn, setIsClockingIn] = useState(false)
+  // const [isClockingOut, setIsClockingOut] = useState(false)
+  // const [isTogglingBreak, setIsTogglingBreak] = useState(false)
+  // const [technicianStats, setTechnicianStats] = useState<TechnicianStats | null>(null)
   const [locationPermission, setLocationPermission] = useState(false)
   const [currentMonthTemplate, setCurrentMonthTemplate] = useState<any>(null)
   const [futureFeatureInfo, setFutureFeatureInfo] = useState<{
@@ -96,47 +94,47 @@ export default function TechnicianDashboardScreen() {
   const [featureInfo, setFeatureInfo] = useState({ title: "", description: "", icon: "" })
 
   // Timer interval for active session
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null
+  // useEffect(() => {
+  //   let interval: NodeJS.Timeout | null = null
 
-    if (currentSession) {
-      interval = setInterval(() => {
-        const now = new Date().getTime()
+  //   if (currentSession) {
+  //     interval = setInterval(() => {
+  //       const now = new Date().getTime()
 
-        if (currentSession.status === "active") {
-          // Calculate elapsed time excluding breaks
-          const clockInTime = new Date(currentSession.clockInEvent.timestamp).getTime()
-          const rawElapsedSeconds = Math.floor((now - clockInTime) / 1000)
-          const breakSeconds = (currentSession.breakDuration || 0) * 60
-          setElapsedTime(rawElapsedSeconds - breakSeconds)
-          setBreakTime(breakSeconds)
-        } else if (currentSession.status === "on_break") {
-          // Calculate elapsed time and current break time
-          const clockInTime = new Date(currentSession.clockInEvent.timestamp).getTime()
-          const rawElapsedSeconds = Math.floor((now - clockInTime) / 1000)
+  //       if (currentSession.status === "active") {
+  //         // Calculate elapsed time excluding breaks
+  //         const clockInTime = new Date(currentSession.clockInEvent.timestamp).getTime()
+  //         const rawElapsedSeconds = Math.floor((now - clockInTime) / 1000)
+  //         const breakSeconds = (currentSession.breakDuration || 0) * 60
+  //         setElapsedTime(rawElapsedSeconds - breakSeconds)
+  //         setBreakTime(breakSeconds)
+  //       } else if (currentSession.status === "on_break") {
+  //         // Calculate elapsed time and current break time
+  //         const clockInTime = new Date(currentSession.clockInEvent.timestamp).getTime()
+  //         const rawElapsedSeconds = Math.floor((now - clockInTime) / 1000)
 
-          // Find the last break start event
-          const lastBreakStart = currentSession.breakEvents.findLast((e) => e.type === "break_start")
+  //         // Find the last break start event
+  //         const lastBreakStart = currentSession.breakEvents.findLast((e) => e.type === "break_start")
 
-          if (lastBreakStart) {
-            const breakStartTime = new Date(lastBreakStart.timestamp).getTime()
-            const currentBreakSeconds = Math.floor((now - breakStartTime) / 1000)
-            const previousBreakSeconds = (currentSession.breakDuration || 0) * 60
+  //         if (lastBreakStart) {
+  //           const breakStartTime = new Date(lastBreakStart.timestamp).getTime()
+  //           const currentBreakSeconds = Math.floor((now - breakStartTime) / 1000)
+  //           const previousBreakSeconds = (currentSession.breakDuration || 0) * 60
 
-            setElapsedTime(rawElapsedSeconds - (previousBreakSeconds + currentBreakSeconds))
-            setBreakTime(previousBreakSeconds + currentBreakSeconds)
-          }
-        }
-      }, 1000)
-    } else {
-      setElapsedTime(0)
-      setBreakTime(0)
-    }
+  //           setElapsedTime(rawElapsedSeconds - (previousBreakSeconds + currentBreakSeconds))
+  //           setBreakTime(previousBreakSeconds + currentBreakSeconds)
+  //         }
+  //       }
+  //     }, 1000)
+  //   } else {
+  //     setElapsedTime(0)
+  //     setBreakTime(0)
+  //   }
 
-    return () => {
-      if (interval) clearInterval(interval)
-    }
-  }, [currentSession])
+  //   return () => {
+  //     if (interval) clearInterval(interval)
+  //   }
+  // }, [currentSession])
 
   // Request location permission on mount
   useEffect(() => {
@@ -166,16 +164,16 @@ export default function TechnicianDashboardScreen() {
 
     try {
       // Get current session
-      const sessionResponse = await technicianApi.workSessions.getCurrent(user?.id || "")
-      setCurrentSession(sessionResponse.data)
-      setIsClockedIn(!!sessionResponse.data)
-      setIsOnBreak(sessionResponse.data?.status === "on_break")
+      // const sessionResponse = await technicianApi.workSessions.getCurrent(user?.id || "")
+      // setCurrentSession(sessionResponse.data)
+      // setIsClockedIn(!!sessionResponse.data)
+      // setIsOnBreak(sessionResponse.data?.status === "on_break")
 
       // Get technician stats
-      const statsResponse = await technicianApi.stats.getTechnicianStats(user?.id || "")
-      if (statsResponse.success) {
-        setTechnicianStats(statsResponse.data)
-      }
+      // const statsResponse = await technicianApi.stats.getTechnicianStats(user?.id || "")
+      // if (statsResponse.success) {
+      //   setTechnicianStats(statsResponse.data)
+      // }
 
       // Get recent reports
       const reportsResponse = await technicianApi.reports.getAll(user?.id || "")
@@ -210,124 +208,124 @@ export default function TechnicianDashboardScreen() {
   }
 
   // Handle clock in
-  const handleClockIn = async () => {
-    setIsClockingIn(true)
+  // const handleClockIn = async () => {
+  //   setIsClockingIn(true)
 
-    try {
-      let location
+  //   try {
+  //     let location
 
-      if (locationPermission) {
-        const currentLocation = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.High,
-        })
+  //     if (locationPermission) {
+  //       const currentLocation = await Location.getCurrentPositionAsync({
+  //         accuracy: Location.Accuracy.High,
+  //       })
 
-        location = {
-          latitude: currentLocation.coords.latitude,
-          longitude: currentLocation.coords.longitude,
-        }
-      }
+  //       location = {
+  //         latitude: currentLocation.coords.latitude,
+  //         longitude: currentLocation.coords.longitude,
+  //       }
+  //     }
 
-      const response = await technicianApi.clockEvents.recordEvent(user?.id || "", "clock_in", location)
+  //     const response = await technicianApi.clockEvents.recordEvent(user?.id || "", "clock_in", location)
 
-      if (response.success) {
-        setIsClockedIn(true)
-        fetchDashboardData() // Refresh data
-        setAlertVisible(true)
-        setAlertType("success")
-        showAlertMessage("Entrada registrada correctamente","Has registrado tu entrada correctamente.")
-      } else {
-        throw new Error(response.message)
-      }
-    } catch (error) {
-      console.error("Error clocking in:", error)
-      setErrorVisible(true)
-      showError("Error", "No se pudo registrar la entrada. Inténtalo de nuevo.")
-    } finally {
-      setIsClockingIn(false)
-    }
-  }
+  //     if (response.success) {
+  //       setIsClockedIn(true)
+  //       fetchDashboardData() // Refresh data
+  //       setAlertVisible(true)
+  //       setAlertType("success")
+  //       showAlertMessage("Entrada registrada correctamente", "Has registrado tu entrada correctamente.")
+  //     } else {
+  //       throw new Error(response.message)
+  //     }
+  //   } catch (error) {
+  //     console.error("Error clocking in:", error)
+  //     setErrorVisible(true)
+  //     showError("Error", "No se pudo registrar la entrada. Inténtalo de nuevo.")
+  //   } finally {
+  //     setIsClockingIn(false)
+  //   }
+  // }
 
   // Handle clock out
-  const handleClockOut = async () => {
-    setIsClockingOut(true)
+  // const handleClockOut = async () => {
+  //   setIsClockingOut(true)
 
-    try {
-      let location
+  //   try {
+  //     let location
 
-      if (locationPermission) {
-        const currentLocation = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.High,
-        })
+  //     if (locationPermission) {
+  //       const currentLocation = await Location.getCurrentPositionAsync({
+  //         accuracy: Location.Accuracy.High,
+  //       })
 
-        location = {
-          latitude: currentLocation.coords.latitude,
-          longitude: currentLocation.coords.longitude,
-        }
-      }
+  //       location = {
+  //         latitude: currentLocation.coords.latitude,
+  //         longitude: currentLocation.coords.longitude,
+  //       }
+  //     }
 
-      const response = await technicianApi.clockEvents.recordEvent(user?.id || "", "clock_out", location)
+  //     const response = await technicianApi.clockEvents.recordEvent(user?.id || "", "clock_out", location)
 
-      if (response.success) {
-        setIsClockedIn(false)
-        setIsOnBreak(false)
-        fetchDashboardData() // Refresh data
-        setAlertVisible(true)
-        setAlertType("success")
-        showAlertMessage("Salida registrada correctamente","Has registrado tu salida correctamente.")
-      } else {
-        throw new Error(response.message)
-      }
-    } catch (error) {
-      console.error("Error clocking out:", error)
-      setErrorVisible(true)
-      showError("Error", "No se pudo registrar la salida. Inténtalo de nuevo.")
-    } finally {
-      setIsClockingOut(false)
-    }
-  }
+  //     if (response.success) {
+  //       setIsClockedIn(false)
+  //       setIsOnBreak(false)
+  //       fetchDashboardData() // Refresh data
+  //       setAlertVisible(true)
+  //       setAlertType("success")
+  //       showAlertMessage("Salida registrada correctamente", "Has registrado tu salida correctamente.")
+  //     } else {
+  //       throw new Error(response.message)
+  //     }
+  //   } catch (error) {
+  //     console.error("Error clocking out:", error)
+  //     setErrorVisible(true)
+  //     showError("Error", "No se pudo registrar la salida. Inténtalo de nuevo.")
+  //   } finally {
+  //     setIsClockingOut(false)
+  //   }
+  // }
 
   // Handle break toggle
-  const handleBreakToggle = async () => {
-    setIsTogglingBreak(true)
+  // const handleBreakToggle = async () => {
+  //   setIsTogglingBreak(true)
 
-    try {
-      let location
+  //   try {
+  //     let location
 
-      if (locationPermission) {
-        const currentLocation = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.High,
-        })
+  //     if (locationPermission) {
+  //       const currentLocation = await Location.getCurrentPositionAsync({
+  //         accuracy: Location.Accuracy.High,
+  //       })
 
-        location = {
-          latitude: currentLocation.coords.latitude,
-          longitude: currentLocation.coords.longitude,
-        }
-      }
+  //       location = {
+  //         latitude: currentLocation.coords.latitude,
+  //         longitude: currentLocation.coords.longitude,
+  //       }
+  //     }
 
-      const eventType = isOnBreak ? "break_end" : "break_start"
+  //     const eventType = isOnBreak ? "break_end" : "break_start"
 
-      const response = await technicianApi.clockEvents.recordEvent(user?.id || "", eventType, location)
+  //     const response = await technicianApi.clockEvents.recordEvent(user?.id || "", eventType, location)
 
-      if (response.success) {
-        setIsOnBreak(!isOnBreak)
-        fetchDashboardData() // Refresh data
-        setAlertVisible(true)
-        setAlertType("success")
-        showAlertMessage(
-          isOnBreak ? "Has reanudado tu trabajo." : "Has iniciado un descanso.",
-          isOnBreak ? "Has reanudado tu trabajo correctamente." : "Has iniciado un descanso correctamente."
-        )
-      } else {
-        throw new Error(response.message)
-      }
-    } catch (error) {
-      console.error("Error toggling break:", error)
-      setErrorVisible(true)
-      setShowErrorMessage(true)
-    } finally {
-      setIsTogglingBreak(false)
-    }
-  }
+  //     if (response.success) {
+  //       setIsOnBreak(!isOnBreak)
+  //       fetchDashboardData() // Refresh data
+  //       setAlertVisible(true)
+  //       setAlertType("success")
+  //       showAlertMessage(
+  //         isOnBreak ? "Has reanudado tu trabajo." : "Has iniciado un descanso.",
+  //         isOnBreak ? "Has reanudado tu trabajo correctamente." : "Has iniciado un descanso correctamente.",
+  //       )
+  //     } else {
+  //       throw new Error(response.message)
+  //     }
+  //   } catch (error) {
+  //     console.error("Error toggling break:", error)
+  //     setErrorVisible(true)
+  //     setShowErrorMessage(true)
+  //   } finally {
+  //     setIsTogglingBreak(false)
+  //   }
+  // }
 
   // Format time (HH:MM:SS)
   const formatTime = (seconds: number) => {
@@ -443,30 +441,7 @@ export default function TechnicianDashboardScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" backgroundColor={COLORS.primary} />
-
-      {/* Header with gradient */}
-      <LinearGradient
-        colors={[COLORS.primary, COLORS.primaryDark]}
-        style={[styles.header, { paddingTop: insets.top + 10 }]}
-      >
-        <View style={styles.headerContent}>
-          <View>
-            <Text style={styles.welcomeText}>Bienvenido,</Text>
-            <Text style={styles.nameText}>{user?.name}</Text>
-          </View>
-          <TouchableOpacity style={styles.profileButton} onPress={() => navigation.navigate("Profile")}>
-            {user?.profileImage ? (
-              <Image source={{ uri: user.profileImage }} style={styles.profileImage} />
-            ) : (
-              <View style={styles.profileImagePlaceholder}>
-                <Text style={styles.profileInitial}>{user?.name?.charAt(0) || "T"}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
-
+      <AppHeader title="Panel de Control" subtitle="Gestiona tus tareas y reportes" showBackButton={false} />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
@@ -476,132 +451,129 @@ export default function TechnicianDashboardScreen() {
         }
       >
         {isLoading ? (
-          <View style={styles.loadingContainer}>
+          <View style={styles.clockInContainer}>
             <ActivityIndicator size="large" color={COLORS.primary} />
             <Text style={styles.loadingText}>Cargando datos...</Text>
           </View>
         ) : (
           <>
             {/* Time Tracking Card */}
-            <Animated.View entering={FadeInDown.duration(300)}>
-              <Card style={styles.timeTrackingCard}>
-                <Card.Content>
-                  <View style={styles.timeTrackingHeader}>
-                    <Text style={styles.timeTrackingTitle}>{isClockedIn ? "Sesión Activa" : "Registro de Tiempo"}</Text>
-                    <Chip
-                      style={[
-                        styles.statusChip,
-                        {
-                          backgroundColor: isClockedIn
-                            ? isOnBreak
-                              ? COLORS.warningLight
-                              : COLORS.successLight
-                            : COLORS.grayLight,
-                        },
-                      ]}
-                      textStyle={{
-                        color: isClockedIn ? (isOnBreak ? COLORS.warning : COLORS.success) : COLORS.gray,
-                      }}
-                    >
-                      {isClockedIn ? (isOnBreak ? "En Descanso" : "En Servicio") : "Fuera de Servicio"}
-                    </Chip>
-                  </View>
+            {/*<Animated.View entering={FadeInDown.duration(300)}>
+            <Card style={styles.timeTrackingCard}>
+              <Card.Content>
+                <View style={styles.timeTrackingHeader}>
+                  <Text style={styles.timeTrackingTitle}>{isClockedIn ? "Sesión Activa" : "Registro de Tiempo"}</Text>
+                  <Chip
+                    style={[
+                      styles.statusChip,
+                      {
+                        backgroundColor: isClockedIn
+                          ? isOnBreak
+                            ? COLORS.warningLight
+                            : COLORS.successLight
+                          : COLORS.grayLight,
+                      },
+                    ]}
+                    textStyle={{
+                      color: isClockedIn ? (isOnBreak ? COLORS.warning : COLORS.success) : COLORS.gray,
+                    }}
+                  >
+                    {isClockedIn ? (isOnBreak ? "En Descanso" : "En Servicio") : "Fuera de Servicio"}
+                  </Chip>
+                </View>
 
-                  {isClockedIn && currentSession ? (
-                    <View style={styles.activeSessionContainer}>
-                      <View style={styles.timeDisplayContainer}>
-                        <Text style={styles.timeDisplayLabel}>Tiempo Trabajado</Text>
-                        <Text style={styles.timeDisplay}>{formatTime(elapsedTime)}</Text>
+                {isClockedIn && currentSession ? (
+                  <View style={styles.activeSessionContainer}>
+                    <View style={styles.timeDisplayContainer}>
+                      <Text style={styles.timeDisplayLabel}>Tiempo Trabajado</Text>
+                      <Text style={styles.timeDisplay}>{formatTime(elapsedTime)}</Text>
 
-                        <View style={styles.breakTimeContainer}>
-                          <Ionicons name="cafe-outline" size={16} color={COLORS.warning} />
-                          <Text style={styles.breakTimeText}>Tiempo de descanso: {formatTime(breakTime)}</Text>
-                        </View>
-                      </View>
-
-                      <View style={styles.sessionInfoContainer}>
-                        <View style={styles.sessionInfoItem}>
-                          <Ionicons name="time-outline" size={20} color={COLORS.gray} />
-                          <Text style={styles.sessionInfoText}>
-                            Entrada:{" "}
-                            {new Date(currentSession.clockInEvent.timestamp).toLocaleTimeString("es-ES", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </Text>
-                        </View>
-                      </View>
-
-                      <View style={styles.timeTrackingActions}>
-                        <Button
-                          mode="contained"
-                          onPress={handleBreakToggle}
-                          style={[styles.breakButton, isOnBreak ? styles.resumeButton : {}]}
-                          contentStyle={styles.buttonContent}
-                          loading={isTogglingBreak}
-                          disabled={isTogglingBreak || isClockingOut}
-                          buttonColor={isOnBreak ? COLORS.success : COLORS.warning}
-                          icon={isOnBreak ? "play" : "pause"}
-                        >
-                          {isOnBreak ? "Reanudar Trabajo" : "Tomar Descanso"}
-                        </Button>
-
-                        <Button
-                          mode="contained"
-                          onPress={handleClockOut}
-                          style={styles.clockOutButton}
-                          contentStyle={styles.buttonContent}
-                          loading={isClockingOut}
-                          disabled={isClockingOut || isTogglingBreak}
-                          buttonColor={COLORS.danger}
-                          icon="logout"
-                        >
-                          Finalizar Jornada
-                        </Button>
+                      <View style={styles.breakTimeContainer}>
+                        <Ionicons name="cafe-outline" size={16} color={COLORS.warning} />
+                        <Text style={styles.breakTimeText}>Tiempo de descanso: {formatTime(breakTime)}</Text>
                       </View>
                     </View>
-                  ) : (
-                    <View style={styles.clockInContainer}>
-                      <Text style={styles.clockInText}>Registra tu entrada para comenzar a trabajar</Text>
+
+                    <View style={styles.sessionInfoContainer}>
+                      <View style={styles.sessionInfoItem}>
+                        <Ionicons name="time-outline" size={20} color={COLORS.gray} />
+                        <Text style={styles.sessionInfoText}>
+                          Entrada:{" "}
+                          {new Date(currentSession.clockInEvent.timestamp).toLocaleTimeString("es-ES", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.timeTrackingActions}>
+                      <Button
+                        mode="contained"
+                        onPress={handleBreakToggle}
+                        style={[styles.breakButton, isOnBreak ? styles.resumeButton : {}]}
+                        contentStyle={styles.buttonContent}
+                        loading={isTogglingBreak}
+                        disabled={isTogglingBreak || isClockingOut}
+                        buttonColor={isOnBreak ? COLORS.success : COLORS.warning}
+                        icon={isOnBreak ? "play" : "pause"}
+                      >
+                        {isOnBreak ? "Reanudar Trabajo" : "Tomar Descanso"}
+                      </Button>
 
                       <Button
                         mode="contained"
-                        onPress={handleClockIn}
-                        style={styles.clockInButton}
+                        onPress={handleClockOut}
+                        style={styles.clockOutButton}
                         contentStyle={styles.buttonContent}
-                        loading={isClockingIn}
-                        disabled={isClockingIn}
-                        buttonColor={COLORS.success}
-                        icon="login"
+                        loading={isClockingOut}
+                        disabled={isClockingOut || isTogglingBreak}
+                        buttonColor={COLORS.danger}
+                        icon="logout"
                       >
-                        Iniciar Jornada
+                        Finalizar Jornada
                       </Button>
                     </View>
-                  )}
-
-                  <View style={styles.timeHistoryLink}>
-                    <TouchableOpacity
-                      style={styles.timeHistoryButton}
-                      onPress={() => navigation.navigate("Tiempo")}
-                    >
-                      <Ionicons name="time-outline" size={16} color={COLORS.primary} />
-                      <Text style={[styles.timeHistoryText, { color: COLORS.primary }]}>Ver historial de tiempo</Text>
-                    </TouchableOpacity>
                   </View>
-                </Card.Content>
-              </Card>
-            </Animated.View>
+                ) : (
+                  <View style={styles.clockInContainer}>
+                    <Text style={styles.clockInText}>Registra tu entrada para comenzar a trabajar</Text>
+
+                    <Button
+                      mode="contained"
+                      onPress={handleClockIn}
+                      style={styles.clockInButton}
+                      contentStyle={styles.buttonContent}
+                      loading={isClockingIn}
+                      disabled={isClockingIn}
+                      buttonColor={COLORS.success}
+                      icon="login"
+                    >
+                      Iniciar Jornada
+                    </Button>
+                  </View>
+                )}
+
+                <View style={styles.timeHistoryLink}>
+                  <TouchableOpacity style={styles.timeHistoryButton} onPress={() => navigation.navigate("Tiempo")}>
+                    <Ionicons name="time-outline" size={16} color={COLORS.primary} />
+                    <Text style={[styles.timeHistoryText, { color: COLORS.primary }]}>Ver historial de tiempo</Text>
+                  </TouchableOpacity>
+                </View>
+              </Card.Content>
+            </Card>
+          </Animated.View>*/}
 
             {/* Quick Actions */}
             <Animated.View entering={FadeInDown.delay(100).duration(300)}>
               <Text style={styles.sectionTitle}>Acciones Rápidas</Text>
               <View style={styles.quickActionsContainer}>
-                <TouchableOpacity style={styles.quickActionButton} onPress={() => navigation.navigate("Tiempo")}>
-                  <View style={[styles.quickActionIcon, { backgroundColor: COLORS.primaryLightest }]}>
-                    <Ionicons name="time-outline" size={24} color={COLORS.primary} />
-                  </View>
-                  <Text style={styles.quickActionText}>Historial de Tiempos</Text>
-                </TouchableOpacity>
+                {/*<TouchableOpacity style={styles.quickActionButton} onPress={() => navigation.navigate("Tiempo")}>
+                <View style={[styles.quickActionIcon, { backgroundColor: COLORS.primaryLightest }]}>
+                  <Ionicons name="time-outline" size={24} color={COLORS.primary} />
+                </View>
+                <Text style={styles.quickActionText}>Historial de Tiempos</Text>
+              </TouchableOpacity>*/}
 
                 <TouchableOpacity style={styles.quickActionButton} onPress={() => navigation.navigate("Reportes")}>
                   <View style={[styles.quickActionIcon, { backgroundColor: COLORS.primaryLightest }]}>
@@ -709,14 +681,12 @@ export default function TechnicianDashboardScreen() {
                           </View>
                         </View>
 
-                        {report.pdfUrl && (
-                          <View style={styles.reportActions}>
-                            <TouchableOpacity style={styles.reportAction}>
-                              <Ionicons name="download-outline" size={16} color={COLORS.primary} />
-                              <Text style={[styles.reportActionText, { color: COLORS.primary }]}>Descargar PDF</Text>
-                            </TouchableOpacity>
-                          </View>
-                        )}
+                        {/*<View style={styles.reportActions}>
+                          <TouchableOpacity style={styles.reportAction}>
+                            <Ionicons name="download-outline" size={16} color={COLORS.primary} />
+                            <Text style={[styles.reportActionText, { color: COLORS.primary }]}>Descargar PDF</Text>
+                          </TouchableOpacity>
+                        </View>*/}
                       </Card.Content>
                     </Card>
                   </TouchableOpacity>
@@ -730,10 +700,7 @@ export default function TechnicianDashboardScreen() {
                 <Text style={styles.sectionTitle}>Próximas Órdenes de Servicio</Text>
               </View>
 
-              <TouchableOpacity
-                style={styles.comingSoonCard}
-                onPress={handleServiceOrdersFeaturePress}
-              >
+              <TouchableOpacity style={styles.comingSoonCard} onPress={handleServiceOrdersFeaturePress}>
                 <View style={styles.comingSoonContent}>
                   <Ionicons name="clipboard-outline" size={48} color={COLORS.gray} />
                   <Text style={styles.comingSoonTitle}>Órdenes de Servicio</Text>
@@ -751,66 +718,58 @@ export default function TechnicianDashboardScreen() {
             </Animated.View>
 
             {/* Work Summary */}
-            {technicianStats && (
-              <Animated.View entering={FadeInDown.delay(500).duration(300)}>
-                <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>Resumen de Trabajo</Text>
-                </View>
+            {/*{technicianStats && (
+            <Animated.View entering={FadeInDown.delay(500).duration(300)}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Resumen de Trabajo</Text>
+              </View>
 
-                <Card style={styles.summaryCard}>
-                  <Card.Content>
-                    <View style={styles.summaryRow}>
-                      <View style={styles.summaryItem}>
-                        <Text style={styles.summaryValue}>{technicianStats.totalWorkSessions}</Text>
-                        <Text style={styles.summaryLabel}>Sesiones</Text>
-                      </View>
-
-                      <View style={styles.summaryItem}>
-                        <Text style={styles.summaryValue}>{Math.round(technicianStats.totalWorkDuration / 60)}h</Text>
-                        <Text style={styles.summaryLabel}>Horas Totales</Text>
-                      </View>
-
-                      <View style={styles.summaryItem}>
-                        <Text style={styles.summaryValue}>{technicianStats.completedReports}</Text>
-                        <Text style={styles.summaryLabel}>Reportes</Text>
-                      </View>
+              <Card style={styles.summaryCard}>
+                <Card.Content>
+                  <View style={styles.summaryRow}>
+                    <View style={styles.summaryItem}>
+                      <Text style={styles.summaryValue}>{technicianStats.totalWorkSessions}</Text>
+                      <Text style={styles.summaryLabel}>Sesiones</Text>
                     </View>
 
-                    <Divider style={styles.divider} />
-
-                    <Text style={styles.weeklyLabel}>Horas Trabajadas por Día</Text>
-                    <View style={styles.weeklyHoursContainer}>
-                      {technicianStats.weeklyWorkHours.map((hours, index) => (
-                        <View key={index} style={styles.weeklyHourBar}>
-                          <View
-                            style={[
-                              styles.weeklyHourFill,
-                              {
-                                height: `${Math.min((hours / 10) * 100, 100)}%`,
-                                backgroundColor: COLORS.primary,
-                              },
-                            ]}
-                          />
-                          <Text style={styles.weeklyHourText}>{["L", "M", "X", "J", "V", "S", "D"][index]}</Text>
-                        </View>
-                      ))}
+                    <View style={styles.summaryItem}>
+                      <Text style={styles.summaryValue}>{Math.round(technicianStats.totalWorkDuration / 60)}h</Text>
+                      <Text style={styles.summaryLabel}>Horas Totales</Text>
                     </View>
-                  </Card.Content>
-                </Card>
-              </Animated.View>
-            )}
+
+                    <View style={styles.summaryItem}>
+                      <Text style={styles.summaryValue}>{technicianStats.completedReports}</Text>
+                      <Text style={styles.summaryLabel}>Reportes</Text>
+                    </View>
+                  </View>
+
+                  <Divider style={styles.divider} />
+
+                  <Text style={styles.weeklyLabel}>Horas Trabajadas por Día</Text>
+                  <View style={styles.weeklyHoursContainer}>
+                    {technicianStats.weeklyWorkHours.map((hours, index) => (
+                      <View key={index} style={styles.weeklyHourBar}>
+                        <View
+                          style={[
+                            styles.weeklyHourFill,
+                            {
+                              height: `${Math.min((hours / 10) * 100, 100)}%`,
+                              backgroundColor: COLORS.primary,
+                            },
+                          ]}
+                        />
+                        <Text style={styles.weeklyHourText}>{["L", "M", "X", "J", "V", "S", "D"][index]}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </Card.Content>
+              </Card>
+            </Animated.View>
+          )}*/}
           </>
         )}
       </ScrollView>
-
       {/* Floating Action Button */}
-      <TouchableOpacity
-        style={[styles.fab, { backgroundColor: COLORS.primary }]}
-        onPress={() => navigation.navigate("Reportes")}
-      >
-        <Ionicons name="document-text" size={24} color="white" />
-      </TouchableOpacity>
-
       {/* Future Feature Modal */}
       <FutureFeatureModal
         visible={showFutureFeatureModal}
@@ -820,7 +779,6 @@ export default function TechnicianDashboardScreen() {
         releaseDate={futureFeatureInfo.releaseDate}
         onClose={() => setShowFutureFeatureModal(false)}
       />
-
       {/* Alert Message */}
       <AlertMessage
         visible={showAlert}
@@ -828,14 +786,14 @@ export default function TechnicianDashboardScreen() {
         message={alertData.message}
         onClose={handleAlertClose}
       />
-
       {/* Error Message */}
       <ErrorMessage
         visible={showErrorMessage}
         title={alertData.title}
         message={alertData.message}
         onClose={() => setShowErrorMessage(false)}
-      />    </View>
+      />{" "}
+    </View>
   )
 }
 
@@ -843,6 +801,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: COLORS.gray,
+    marginTop: 8,
+    textAlign: "center",
   },
   header: {
     paddingHorizontal: 20,
@@ -894,29 +858,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  profileInitial: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "white",
-  },
   scrollView: {
     flex: 1,
   },
   scrollViewContent: {
     padding: 16,
     paddingBottom: 80,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-    minHeight: 300,
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: COLORS.gray,
   },
   // Section Header Styles
   sectionHeader: {
@@ -961,7 +908,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
   },
   timeTrackingTitle: {
     fontSize: 18,
@@ -1168,7 +1114,7 @@ const styles = StyleSheet.create({
   },
   reportBuilding: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "bold",
     color: COLORS.black,
   },
   reportDate: {
@@ -1188,143 +1134,6 @@ const styles = StyleSheet.create({
     color: COLORS.grayDark,
     marginLeft: 8,
     flex: 1,
-  },
-  reportActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    marginTop: 8,
-  },
-  reportAction: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 8,
-  },
-  reportActionText: {
-    marginLeft: 4,
-    fontSize: 14,
-  },
-  // Coming Soon Styles
-  comingSoonBadge: {
-    backgroundColor: COLORS.primaryLightest,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  comingSoonText: {
-    fontSize: 18,
-    color: COLORS.primary,
-    fontWeight: "500",
-  },
-  comingSoonCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: COLORS.grayLight,
-    borderStyle: "dashed",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 1,
-      },
-    }),
-  },
-  comingSoonContent: {
-    padding: 24,
-    alignItems: "center",
-  },
-  comingSoonTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: COLORS.black,
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  comingSoonDescription: {
-    fontSize: 14,
-    color: COLORS.gray,
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  learnMoreButton: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  learnMoreText: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  // Summary Card Styles
-  summaryCard: {
-    marginBottom: 16,
-    borderRadius: 12,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-  },
-  summaryRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  summaryItem: {
-    alignItems: "center",
-    flex: 1,
-  },
-  summaryValue: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: COLORS.black,
-    marginBottom: 4,
-  },
-  summaryLabel: {
-    fontSize: 14,
-    color: COLORS.gray,
-  },
-  weeklyLabel: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: COLORS.grayDark,
-    marginBottom: 12,
-  },
-  weeklyHoursContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    height: 100,
-    marginTop: 8,
-  },
-  weeklyHourBar: {
-    width: 24,
-    height: "100%",
-    justifyContent: "flex-end",
-    alignItems: "center",
-  },
-  weeklyHourFill: {
-    width: "100%",
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
-  },
-  weeklyHourText: {
-    fontSize: 12,
-    color: COLORS.gray,
-    marginTop: 4,
-  },
-  divider: {
-    marginVertical: 12,
-    backgroundColor: COLORS.grayLight,
   },
   fab: {
     position: "absolute",
@@ -1358,5 +1167,66 @@ const styles = StyleSheet.create({
     alignItems: "center",
     zIndex: 1,
   },
+  /*New styles*/
+  divider: {
+    backgroundColor: "#e5e7eb",
+  },
+  reportActions: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    marginTop: 4,
+  },
+  reportAction: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    marginTop: 4,
+    alignItems: "center",
+    marginRight: 15,
+  },
+  reportActionText: {
+    marginLeft: 5,
+  },
+  comingSoonCard: {
+    marginBottom: 12,
+    borderRadius: 12,
+    padding: 16,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.grayLight, // Replace with an existing color property
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+    overflow: "hidden",
+    position: "relative",
+  },
+  comingSoonContent: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  comingSoonTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: COLORS.grayDark,
+    marginTop: 12,
+    marginBottom: 5,
+    textAlign: "center",
+  },
+  comingSoonDescription: {
+    fontSize: 14,
+    color: COLORS.gray,
+    textAlign: "center",
+  },
+  comingSoonBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  comingSoonText: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
 })
-

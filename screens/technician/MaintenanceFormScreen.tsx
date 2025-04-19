@@ -12,12 +12,13 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native"
-import { TextInput, Button, Checkbox, Divider, ProgressBar, IconButton, Chip } from "react-native-paper"
+import { TextInput, Button, Checkbox, Divider, IconButton, Chip } from "react-native-paper"
 import { Ionicons } from "@expo/vector-icons"
 import { useNavigation, useRoute } from "@react-navigation/native"
-import * as ImagePicker from "expo-image-picker"
 import { useApp } from "../../context/AppContext"
 import SignatureScreen, { type SignatureViewRef } from "react-native-signature-canvas"
+import AppHeader from "../../components/AppHeader"
+import * as ImagePicker from "expo-image-picker"
 
 interface ChecklistItem {
   id: string
@@ -235,87 +236,80 @@ export default function MaintenanceFormScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={formStyles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={100}
     >
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Formulario de Mantenimiento</Text>
-          <Text style={styles.headerSubtitle}>{maintenance.clientName}</Text>
-        </View>
-        <View style={styles.progressContainer}>
-          <Text style={styles.progressText}>{Math.round(getCompletionPercentage() * 100)}% Completado</Text>
-          <ProgressBar progress={getCompletionPercentage()} color="#059669" style={styles.progressBar} />
-        </View>
-      </View>
+      <AppHeader title="Formulario de Mantenimiento" subtitle={maintenance.clientName} showBackButton={true} />
 
-      <View style={styles.tabsContainer}>
+      <View style={formStyles.tabsContainer}>
         <TouchableOpacity
-          style={[styles.tab, activeSection === "checklist" && styles.activeTab]}
+          style={[formStyles.tab, activeSection === "checklist" && formStyles.activeTab]}
           onPress={() => setActiveSection("checklist")}
         >
           <Ionicons name="list" size={20} color={activeSection === "checklist" ? "#059669" : "#6b7280"} />
-          <Text style={[styles.tabText, activeSection === "checklist" && styles.activeTabText]}>Checklist</Text>
+          <Text style={[formStyles.tabText, activeSection === "checklist" && formStyles.activeTabText]}>Checklist</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.tab, activeSection === "photos" && styles.activeTab]}
+          style={[formStyles.tab, activeSection === "photos" && formStyles.activeTab]}
           onPress={() => setActiveSection("photos")}
         >
           <Ionicons name="camera" size={20} color={activeSection === "photos" ? "#059669" : "#6b7280"} />
-          <Text style={[styles.tabText, activeSection === "photos" && styles.activeTabText]}>Fotos</Text>
+          <Text style={[formStyles.tabText, activeSection === "photos" && formStyles.activeTabText]}>Fotos</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.tab, activeSection === "notes" && styles.activeTab]}
+          style={[formStyles.tab, activeSection === "notes" && formStyles.activeTab]}
           onPress={() => setActiveSection("notes")}
         >
           <Ionicons name="document-text" size={20} color={activeSection === "notes" ? "#059669" : "#6b7280"} />
-          <Text style={[styles.tabText, activeSection === "notes" && styles.activeTabText]}>Notas</Text>
+          <Text style={[formStyles.tabText, activeSection === "notes" && formStyles.activeTabText]}>Notas</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.tab, activeSection === "signatures" && styles.activeTab]}
+          style={[formStyles.tab, activeSection === "signatures" && formStyles.activeTab]}
           onPress={() => setActiveSection("signatures")}
         >
           <Ionicons name="create" size={20} color={activeSection === "signatures" ? "#059669" : "#6b7280"} />
-          <Text style={[styles.tabText, activeSection === "signatures" && styles.activeTabText]}>Firmas</Text>
+          <Text style={[formStyles.tabText, activeSection === "signatures" && formStyles.activeTabText]}>Firmas</Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView style={formStyles.content}>
         {activeSection === "checklist" && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Checklist de Mantenimiento</Text>
+          <View style={formStyles.section}>
+            <Text style={formStyles.sectionTitle}>Checklist de Mantenimiento</Text>
 
             {formData.checklistItems.map((item) => (
-              <TouchableOpacity key={item.id} style={styles.checklistItem} onPress={() => handleCheckItem(item.id)}>
+              <TouchableOpacity key={item.id} style={formStyles.checklistItem} onPress={() => handleCheckItem(item.id)}>
                 <Checkbox
                   status={item.checked ? "checked" : "unchecked"}
                   onPress={() => handleCheckItem(item.id)}
                   color="#059669"
                 />
-                <Text style={[styles.checklistText, item.checked && styles.checklistTextChecked]}>{item.title}</Text>
+                <Text style={[formStyles.checklistText, item.checked && formStyles.checklistTextChecked]}>
+                  {item.title}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
         )}
 
         {activeSection === "photos" && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Fotos del Mantenimiento</Text>
-            <Text style={styles.sectionDescription}>
+          <View style={formStyles.section}>
+            <Text style={formStyles.sectionTitle}>Fotos del Mantenimiento</Text>
+            <Text style={formStyles.sectionDescription}>
               Tome fotos del trabajo realizado para documentar el mantenimiento
             </Text>
 
-            <View style={styles.photoButtons}>
+            <View style={formStyles.photoButtons}>
               <Button
                 mode="contained"
                 icon="camera"
                 buttonColor="#059669"
                 onPress={handleTakePhoto}
-                style={styles.photoButton}
+                style={formStyles.photoButton}
               >
                 Tomar Foto
               </Button>
@@ -325,36 +319,36 @@ export default function MaintenanceFormScreen() {
                 icon="image"
                 textColor="#059669"
                 onPress={handleAddPhoto}
-                style={styles.photoButton}
+                style={formStyles.photoButton}
               >
                 Galería
               </Button>
             </View>
 
             {formData.photos.length > 0 ? (
-              <View style={styles.photoGrid}>
+              <View style={formStyles.photoGrid}>
                 {formData.photos.map((photo, index) => (
-                  <View key={index} style={styles.photoContainer}>
-                    <Image source={{ uri: photo }} style={styles.photo} />
-                    <TouchableOpacity style={styles.removePhotoButton} onPress={() => handleRemovePhoto(index)}>
+                  <View key={index} style={formStyles.photoContainer}>
+                    <Image source={{ uri: photo }} style={formStyles.photo} />
+                    <TouchableOpacity style={formStyles.removePhotoButton} onPress={() => handleRemovePhoto(index)}>
                       <Ionicons name="close-circle" size={24} color="#ef4444" />
                     </TouchableOpacity>
                   </View>
                 ))}
               </View>
             ) : (
-              <View style={styles.emptyPhotos}>
+              <View style={formStyles.emptyPhotos}>
                 <Ionicons name="images-outline" size={48} color="#d1d5db" />
-                <Text style={styles.emptyPhotosText}>No hay fotos agregadas</Text>
+                <Text style={formStyles.emptyPhotosText}>No hay fotos agregadas</Text>
               </View>
             )}
           </View>
         )}
 
         {activeSection === "notes" && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Notas y Observaciones</Text>
-            <Text style={styles.sectionDescription}>
+          <View style={formStyles.section}>
+            <Text style={formStyles.sectionTitle}>Notas y Observaciones</Text>
+            <Text style={formStyles.sectionDescription}>
               Agregue cualquier observación o detalle adicional sobre el mantenimiento
             </Text>
 
@@ -365,12 +359,12 @@ export default function MaintenanceFormScreen() {
               placeholder="Escriba sus observaciones aquí..."
               value={formData.notes}
               onChangeText={(text) => setFormData((prev) => ({ ...prev, notes: text }))}
-              style={styles.notesInput}
+              style={formStyles.notesInput}
             />
 
-            <View style={styles.quickNotesContainer}>
-              <Text style={styles.quickNotesTitle}>Notas rápidas:</Text>
-              <View style={styles.quickNotes}>
+            <View style={formStyles.quickNotesContainer}>
+              <Text style={formStyles.quickNotesTitle}>Notas rápidas:</Text>
+              <View style={formStyles.quickNotes}>
                 <Chip
                   mode="flat"
                   onPress={() =>
@@ -379,7 +373,7 @@ export default function MaintenanceFormScreen() {
                       notes: prev.notes + " Se requiere cambio de piezas.",
                     }))
                   }
-                  style={styles.quickNote}
+                  style={formStyles.quickNote}
                 >
                   Cambio de piezas
                 </Chip>
@@ -391,7 +385,7 @@ export default function MaintenanceFormScreen() {
                       notes: prev.notes + " Mantenimiento preventivo completado sin incidencias.",
                     }))
                   }
-                  style={styles.quickNote}
+                  style={formStyles.quickNote}
                 >
                   Sin incidencias
                 </Chip>
@@ -403,7 +397,7 @@ export default function MaintenanceFormScreen() {
                       notes: prev.notes + " Se recomienda revisión adicional en próxima visita.",
                     }))
                   }
-                  style={styles.quickNote}
+                  style={formStyles.quickNote}
                 >
                   Revisión adicional
                 </Chip>
@@ -413,48 +407,20 @@ export default function MaintenanceFormScreen() {
         )}
 
         {activeSection === "signatures" && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Firmas</Text>
-            <Text style={styles.sectionDescription}>
+          <View style={formStyles.section}>
+            <Text style={formStyles.sectionTitle}>Firmas</Text>
+            <Text style={formStyles.sectionDescription}>
               Se requiere la firma del cliente y del técnico para completar el mantenimiento
             </Text>
 
-            <View style={styles.signatureSection}>
-              <Text style={styles.signatureTitle}>Firma del Cliente</Text>
-
-              {formData.clientSignature ? (
-                <View style={styles.signatureContainer}>
-                  <Image
-                    source={{ uri: formData.clientSignature }}
-                    style={styles.signatureImage}
-                    resizeMode="contain"
-                  />
-                  <Button
-                    mode="text"
-                    textColor="#ef4444"
-                    onPress={() => setFormData((prev) => ({ ...prev, clientSignature: null }))}
-                  >
-                    Borrar firma
-                  </Button>
-                </View>
-              ) : (
-                <TouchableOpacity style={styles.signaturePlaceholder} onPress={() => setShowClientSignature(true)}>
-                  <Ionicons name="create-outline" size={32} color="#6b7280" />
-                  <Text style={styles.signaturePlaceholderText}>Toque para firmar</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <Divider style={styles.divider} />
-
-            <View style={styles.signatureSection}>
-              <Text style={styles.signatureTitle}>Firma del Técnico</Text>
+            <View style={formStyles.signatureSection}>
+              <Text style={formStyles.signatureTitle}>Firma del Técnico</Text>
 
               {formData.technicianSignature ? (
-                <View style={styles.signatureContainer}>
+                <View style={formStyles.signatureContainer}>
                   <Image
                     source={{ uri: formData.technicianSignature }}
-                    style={styles.signatureImage}
+                    style={formStyles.signatureImage}
                     resizeMode="contain"
                   />
                   <Button
@@ -466,9 +432,37 @@ export default function MaintenanceFormScreen() {
                   </Button>
                 </View>
               ) : (
-                <TouchableOpacity style={styles.signaturePlaceholder} onPress={() => setShowTechSignature(true)}>
+                <TouchableOpacity style={formStyles.signaturePlaceholder} onPress={() => setShowTechSignature(true)}>
                   <Ionicons name="create-outline" size={32} color="#6b7280" />
-                  <Text style={styles.signaturePlaceholderText}>Toque para firmar</Text>
+                  <Text style={formStyles.signaturePlaceholderText}>Toque para firmar</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <Divider style={formStyles.divider} />
+
+            <View style={formStyles.signatureSection}>
+              <Text style={formStyles.signatureTitle}>Firma del Cliente</Text>
+
+              {formData.clientSignature ? (
+                <View style={formStyles.signatureContainer}>
+                  <Image
+                    source={{ uri: formData.clientSignature }}
+                    style={formStyles.signatureImage}
+                    resizeMode="contain"
+                  />
+                  <Button
+                    mode="text"
+                    textColor="#ef4444"
+                    onPress={() => setFormData((prev) => ({ ...prev, clientSignature: null }))}
+                  >
+                    Borrar firma
+                  </Button>
+                </View>
+              ) : (
+                <TouchableOpacity style={formStyles.signaturePlaceholder} onPress={() => setShowClientSignature(true)}>
+                  <Ionicons name="create-outline" size={32} color="#6b7280" />
+                  <Text style={formStyles.signaturePlaceholderText}>Toque para firmar</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -476,21 +470,21 @@ export default function MaintenanceFormScreen() {
         )}
       </ScrollView>
 
-      <View style={styles.footer}>
-        <Button mode="outlined" textColor="#059669" onPress={handleSaveDraft} style={styles.footerButton}>
+      <View style={formStyles.footer}>
+        <Button mode="outlined" textColor="#059669" onPress={handleSaveDraft} style={formStyles.footerButton}>
           Guardar Borrador
         </Button>
 
-        <Button mode="contained" buttonColor="#059669" onPress={handleComplete} style={styles.footerButton}>
+        <Button mode="contained" buttonColor="#059669" onPress={handleComplete} style={formStyles.footerButton}>
           Completar
         </Button>
       </View>
 
       {/* Client Signature Modal */}
       {showClientSignature && (
-        <View style={styles.signatureModal}>
-          <View style={styles.signatureModalHeader}>
-            <Text style={styles.signatureModalTitle}>Firma del Cliente</Text>
+        <View style={formStyles.signatureModal}>
+          <View style={formStyles.signatureModalHeader}>
+            <Text style={formStyles.signatureModalTitle}>Firma del Cliente</Text>
             <IconButton icon="close" size={24} onPress={() => setShowClientSignature(false)} />
           </View>
 
@@ -500,12 +494,12 @@ export default function MaintenanceFormScreen() {
             webStyle={style}
           />
 
-          <View style={styles.signatureModalFooter}>
+          <View style={formStyles.signatureModalFooter}>
             <Button
               mode="outlined"
               textColor="#ef4444"
               onPress={handleClearClientSignature}
-              style={styles.signatureButton}
+              style={formStyles.signatureButton}
             >
               Borrar
             </Button>
@@ -514,7 +508,7 @@ export default function MaintenanceFormScreen() {
               mode="contained"
               buttonColor="#059669"
               onPress={() => clientSignatureRef.current?.readSignature()}
-              style={styles.signatureButton}
+              style={formStyles.signatureButton}
             >
               Confirmar
             </Button>
@@ -524,9 +518,9 @@ export default function MaintenanceFormScreen() {
 
       {/* Technician Signature Modal */}
       {showTechSignature && (
-        <View style={styles.signatureModal}>
-          <View style={styles.signatureModalHeader}>
-            <Text style={styles.signatureModalTitle}>Firma del Técnico</Text>
+        <View style={formStyles.signatureModal}>
+          <View style={formStyles.signatureModalHeader}>
+            <Text style={formStyles.signatureModalTitle}>Firma del Técnico</Text>
             <IconButton icon="close" size={24} onPress={() => setShowTechSignature(false)} />
           </View>
 
@@ -536,12 +530,12 @@ export default function MaintenanceFormScreen() {
             webStyle={style}
           />
 
-          <View style={styles.signatureModalFooter}>
+          <View style={formStyles.signatureModalFooter}>
             <Button
               mode="outlined"
               textColor="#ef4444"
               onPress={handleClearTechSignature}
-              style={styles.signatureButton}
+              style={formStyles.signatureButton}
             >
               Borrar
             </Button>
@@ -550,7 +544,7 @@ export default function MaintenanceFormScreen() {
               mode="contained"
               buttonColor="#059669"
               onPress={() => techSignatureRef.current?.readSignature()}
-              style={styles.signatureButton}
+              style={formStyles.signatureButton}
             >
               Confirmar
             </Button>
@@ -561,40 +555,48 @@ export default function MaintenanceFormScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const formStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f9fafb",
   },
   header: {
-    backgroundColor: "white",
+    backgroundColor: "#059669",
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+  },
+  signatureButton: {
+    flex: 1,
+    marginHorizontal: 4,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  emptyPhotos: {
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 16,
+    backgroundColor: "#f3f4f6",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  emptyPhotosText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: "#6b7280",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#e5e7eb",
+    marginVertical: 16,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#1f2937",
-    marginBottom: 4,
+    color: "white",
   },
   headerSubtitle: {
     fontSize: 14,
-    color: "#6b7280",
-    marginBottom: 12,
-  },
-  progressContainer: {
-    marginTop: 8,
-  },
-  progressText: {
-    fontSize: 12,
-    color: "#059669",
-    marginBottom: 4,
-    textAlign: "right",
-  },
-  progressBar: {
-    height: 6,
-    borderRadius: 3,
+    color: "rgba(255, 255, 255, 0.8)",
   },
   tabsContainer: {
     flexDirection: "row",
@@ -604,18 +606,14 @@ const styles = StyleSheet.create({
   },
   tab: {
     flex: 1,
-    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
     paddingVertical: 12,
-    borderBottomWidth: 2,
-    borderBottomColor: "transparent",
   },
   activeTab: {
+    borderBottomWidth: 2,
     borderBottomColor: "#059669",
   },
   tabText: {
-    marginLeft: 4,
     fontSize: 14,
     color: "#6b7280",
   },
@@ -634,7 +632,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "#1f2937",
-    marginBottom: 8,
+    marginBottom: 12,
   },
   sectionDescription: {
     fontSize: 14,
@@ -687,20 +685,6 @@ const styles = StyleSheet.create({
     right: 4,
     backgroundColor: "white",
     borderRadius: 12,
-  },
-  emptyPhotos: {
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 32,
-    backgroundColor: "#f3f4f6",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderStyle: "dashed",
-  },
-  emptyPhotosText: {
-    marginTop: 12,
-    color: "#6b7280",
   },
   notesInput: {
     backgroundColor: "white",
@@ -758,9 +742,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     color: "#6b7280",
   },
-  divider: {
-    marginVertical: 24,
-  },
   footer: {
     flexDirection: "row",
     padding: 16,
@@ -786,13 +767,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    backgroundColor: "#059669",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
   signatureModalTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#1f2937",
+    color: "white",
   },
   signatureModalFooter: {
     flexDirection: "row",
@@ -800,9 +782,4 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#e5e7eb",
   },
-  signatureButton: {
-    flex: 1,
-    marginHorizontal: 4,
-  },
 })
-

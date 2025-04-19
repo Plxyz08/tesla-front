@@ -8,9 +8,27 @@ import { useNavigation } from "@react-navigation/native"
 import { useApp } from "../../context/AppContext"
 import { useAuth } from "../../context/AuthContext"
 import Animated, { FadeInRight, FadeOutLeft } from "react-native-reanimated"
+import AppHeader from "../../components/AppHeader"
+import AlertMessage from "../../components/alertMessage"
+
+const COLORS = {
+  adminPrimary: "#7c3aed", // Morado para admin
+  technicianPrimary: "#059669", // Verde para técnico
+  clientPrimary: "#efb810", // Dorado para clientes
+  background: "#f9fafb",
+  card: "#ffffff",
+  text: "#1f2937",
+  textSecondary: "#4b5563",
+  textTertiary: "#9ca3af",
+  border: "#e5e7eb",
+  error: "#ef4444",
+  success: "#10b981",
+  warning: "#f59e0b",
+  info: "#3b82f6",
+}
 
 export default function NotificationsScreen() {
-  const navigation = useNavigation()
+  const navigation = useNavigation<any>()
   const { notifications, markNotificationAsRead, clearNotifications } = useApp()
   const { user } = useAuth()
 
@@ -18,6 +36,16 @@ export default function NotificationsScreen() {
   const [activeFilter, setActiveFilter] = useState<"all" | "unread" | "emergency" | "task" | "info">("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [menuVisible, setMenuVisible] = useState(false)
+  const [alertVisible, setAlertVisible] = useState(false)
+  const [alertData, setAlertData] = useState({ title: "", message: "" })
+
+  // Determinar el color primario según el rol del usuario
+  const primaryColor =
+    user?.role === "admin"
+      ? COLORS.adminPrimary
+      : user?.role === "technician"
+        ? COLORS.technicianPrimary
+        : COLORS.clientPrimary
 
   useEffect(() => {
     applyFilters()
@@ -111,13 +139,13 @@ export default function NotificationsScreen() {
   const getNotificationColor = (type: string) => {
     switch (type) {
       case "emergency":
-        return "#ef4444"
+        return COLORS.error
       case "task":
-        return "#f59e0b"
+        return COLORS.warning
       case "info":
-        return "#0ea5e9"
+        return COLORS.info
       default:
-        return "#6b7280"
+        return COLORS.textTertiary
     }
   }
 
@@ -165,22 +193,14 @@ export default function NotificationsScreen() {
     </Animated.View>
   )
 
+  const handleAlertClose = () => {
+    setAlertVisible(false)
+  }
+
   return (
     <View style={styles.container}>
+      <AppHeader title="Notificaciones" showBackButton />
       <View style={styles.header}>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Notificaciones</Text>
-          <View style={styles.headerActions}>
-            <IconButton icon="dots-vertical" size={24} onPress={() => setMenuVisible(true)} />
-
-            <Menu visible={menuVisible} onDismiss={() => setMenuVisible(false)} anchor={<View />} style={styles.menu}>
-              <Menu.Item onPress={handleMarkAllAsRead} title="Marcar todas como leídas" leadingIcon="check-all" />
-              <Menu.Item onPress={handleClearAll} title="Eliminar todas" leadingIcon="delete" />
-              <Divider />
-              <Menu.Item onPress={() => setMenuVisible(false)} title="Configurar notificaciones" leadingIcon="cog" />
-            </Menu>
-          </View>
-        </View>
 
         <Searchbar
           placeholder="Buscar notificaciones"
@@ -273,6 +293,14 @@ export default function NotificationsScreen() {
           </Button>
         </View>
       )}
+
+      {/* Alert Message */}
+      <AlertMessage
+        visible={alertVisible}
+        title={alertData.title}
+        message={alertData.message}
+        onClose={handleAlertClose}
+      />
     </View>
   )
 }
@@ -415,4 +443,3 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 })
-

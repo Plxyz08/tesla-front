@@ -277,7 +277,7 @@ export default function ReportsListScreen() {
         {!searchQuery && (
           <Button
             mode="contained"
-            onPress={navigateToCreateReport}
+            onPress={() => navigation.navigate("Reportes")}
             style={styles.createButton}
             buttonColor={COLORS.primary}
             icon="plus"
@@ -299,8 +299,11 @@ export default function ReportsListScreen() {
         style={[styles.header, { paddingTop: insets.top + 10 }]}
       >
         <View style={styles.headerContent}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>Mis Reportes</Text>
-          <TouchableOpacity style={styles.createReportButton} onPress={navigateToCreateReport}>
+          <TouchableOpacity style={styles.createReportButton} onPress={() => navigation.navigate("Reportes")}          >
             <Ionicons name="add" size={24} color="white" />
           </TouchableOpacity>
         </View>
@@ -392,6 +395,14 @@ const styles = StyleSheet.create({
     color: "white",
   },
   createReportButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,

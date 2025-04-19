@@ -27,6 +27,7 @@ import Animated, { FadeInDown } from "react-native-reanimated"
 import { StatusBar } from "expo-status-bar"
 import AlertMessage from "../../components/alertMessage"
 import ErrorMessage from "../../components/ErrorMessage"
+import AppHeader from "../../components/AppHeader"
 
 // Define the green color palette to match the technician theme
 const COLORS = {
@@ -774,20 +775,7 @@ export default function CreateReportScreen() {
       keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
     >
       <StatusBar style="light" backgroundColor={COLORS.primary} />
-
-      {/* Header with gradient */}
-      <LinearGradient
-        colors={[COLORS.primary, COLORS.primaryDark]}
-        style={[styles.header, { paddingTop: insets.top + 10 }]}
-      >
-        <View style={styles.headerContent}>
-          <TouchableOpacity style={styles.backButton} onPress={handlePrevStep}>
-            <Ionicons name="chevron-back" size={24} color="white" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Crear Reporte</Text>
-          <View style={{ width: 24 }} />
-        </View>
-      </LinearGradient>
+      <AppHeader title="Crear Reporte" subtitle="Nuevo reporte de mantenimiento" showBackButton={true} />
 
       <ScrollView
         style={styles.scrollView}
@@ -904,55 +892,55 @@ export default function CreateReportScreen() {
                 clearText="Limpiar"
                 confirmText="Guardar"
                 webStyle={`
-                  .m-signature-pad {
-                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-                    border: none;
-                  }
-                  .m-signature-pad--body {
-                    border: none;
-                  }
-                  .m-signature-pad--body canvas {
-                    background-color: #ffffff;
-                    border: 2px dashed ${COLORS.primary}; /* Añade un borde punteado para indicar el área de firma */
-                  }
-                  .m-signature-pad--footer {
-                    display: flex;
-                    justify-content: space-between;
-                    background-color: ${COLORS.primaryLightest};
-                    padding: 16px;
-                    border-top: 1px solid #e5e7eb;
-                  }
-                  .m-signature-pad--footer .button {
-                    background-color: ${COLORS.primary};
-                    color: #fff;
-                    padding: 12px 24px;
-                    border-radius: 8px;
-                    font-weight: bold;
-                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                    border: none;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    text-align: center; /* Centra el texto horizontalmente */
-                    display: flex;
-                    justify-content: center; /* Centra el texto horizontalmente */
-                    align-items: center; /* Centra el texto verticalmente */
-                  }
-                  .m-signature-pad--footer .button:hover {
-                    background-color: ${COLORS.primaryDark};
-                    transform: translateY(-1px);
-                  }
-                  .m-signature-pad--footer .button.clear {
-                    background-color: #f3f4f6;
-                    color: ${COLORS.grayDark};
-                  }
-                  .m-signature-pad--footer .description {
-                    color: ${COLORS.grayDark};
-                    font-size: 14px;
-                    margin-bottom: 10px;
-                    text-align: center;
-                    padding: 10px;
-                  }
-                `}
+                 .m-signature-pad {
+                   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                   border: none;
+                 }
+                 .m-signature-pad--body {
+                   border: none;
+                 }
+                 .m-signature-pad--body canvas {
+                   background-color: #ffffff;
+                   border: 2px dashed ${COLORS.primary}; /* Añade un borde punteado para indicar el área de firma */
+                 }
+                 .m-signature-pad--footer {
+                   display: flex;
+                   justify-content: space-between;
+                   background-color: ${COLORS.primaryLightest};
+                   padding: 16px;
+                   border-top: 1px solid #e5e7eb;
+                 }
+                 .m-signature-pad--footer .button {
+                   background-color: ${COLORS.primary};
+                   color: #fff;
+                   padding: 12px 24px;
+                   border-radius: 8px;
+                   font-weight: bold;
+                   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                   border: none;
+                   cursor: pointer;
+                   transition: all 0.2s ease;
+                   text-align: center; /* Centra el texto horizontalmente */
+                   display: flex;
+                   justify-content: center; /* Centra el texto horizontalmente */
+                   align-items: center; /* Centra el texto verticalmente */
+                 }
+                 .m-signature-pad--footer .button:hover {
+                   background-color: ${COLORS.primaryDark};
+                   transform: translateY(-1px);
+                 }
+                 .m-signature-pad--footer .button.clear {
+                   background-color: #f3f4f6;
+                   color: ${COLORS.grayDark};
+                 }
+                 .m-signature-pad--footer .description {
+                   color: ${COLORS.grayDark};
+                   font-size: 14px;
+                   margin-bottom: 10px;
+                   text-align: center;
+                   padding: 10px;
+                 }
+               `}
               />
             </View>
 
@@ -987,55 +975,55 @@ export default function CreateReportScreen() {
                 clearText="Limpiar"
                 confirmText="Guardar"
                 webStyle={`
-                  .m-signature-pad {
-                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-                    border: none;
-                  }
-                  .m-signature-pad--body {
-                    border: none;
-                  }
-                  .m-signature-pad--body canvas {
-                    background-color: #ffffff;
-                    border: 2px dashed ${COLORS.primary}; /* Añade un borde punteado para indicar el área de firma */
-                  }
-                  .m-signature-pad--footer {
-                    display: flex;
-                    justify-content: space-between;
-                    background-color: ${COLORS.primaryLightest};
-                    padding: 16px;
-                    border-top: 1px solid #e5e7eb;
-                  }
-                  .m-signature-pad--footer .button {
-                    background-color: ${COLORS.primary};
-                    color: #fff;
-                    padding: 12px 24px;
-                    border-radius: 8px;
-                    font-weight: bold;
-                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                    border: none;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    text-align: center; /* Centra el texto horizontalmente */
-                    display: flex;
-                    justify-content: center; /* Centra el texto horizontalmente */
-                    align-items: center; /* Centra el texto verticalmente */
-                  }
-                  .m-signature-pad--footer .button:hover {
-                    background-color: ${COLORS.primaryDark};
-                    transform: translateY(-1px);
-                  }
-                  .m-signature-pad--footer .button.clear {
-                    background-color: #f3f4f6;
-                    color: ${COLORS.grayDark};
-                  }
-                  .m-signature-pad--footer .description {
-                    color: ${COLORS.grayDark};
-                    font-size: 14px;
-                    margin-bottom: 10px;
-                    text-align: center;
-                    padding: 10px;
-                  }
-                `}
+                 .m-signature-pad {
+                   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                   border: none;
+                 }
+                 .m-signature-pad--body {
+                   border: none;
+                 }
+                 .m-signature-pad--body canvas {
+                   background-color: #ffffff;
+                   border: 2px dashed ${COLORS.primary}; /* Añade un borde punteado para indicar el área de firma */
+                 }
+                 .m-signature-pad--footer {
+                   display: flex;
+                   justify-content: space-between;
+                   background-color: ${COLORS.primaryLightest};
+                   padding: 16px;
+                   border-top: 1px solid #e5e7eb;
+                 }
+                 .m-signature-pad--footer .button {
+                   background-color: ${COLORS.primary};
+                   color: #fff;
+                   padding: 12px 24px;
+                   border-radius: 8px;
+                   font-weight: bold;
+                   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                   border: none;
+                   cursor: pointer;
+                   transition: all 0.2s ease;
+                   text-align: center; /* Centra el texto horizontalmente */
+                   display: flex;
+                   justify-content: center; /* Centra el texto horizontalmente */
+                   align-items: center; /* Centra el texto verticalmente */
+                 }
+                 .m-signature-pad--footer .button:hover {
+                   background-color: ${COLORS.primaryDark};
+                   transform: translateY(-1px);
+                 }
+                 .m-signature-pad--footer .button.clear {
+                   background-color: #f3f4f6;
+                   color: ${COLORS.grayDark};
+                 }
+                 .m-signature-pad--footer .description {
+                   color: ${COLORS.grayDark};
+                   font-size: 14px;
+                   margin-bottom: 10px;
+                   text-align: center;
+                   padding: 10px;
+                 }
+               `}
               />
             </View>
 
@@ -1586,4 +1574,3 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 })
-

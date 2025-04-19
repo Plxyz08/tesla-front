@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import {
   View,
   Text,
@@ -13,19 +13,18 @@ import {
   StatusBar,
   Linking,
 } from "react-native"
+import AppHeader from "../../components/AppHeader"
 import { Card, Button, Divider, Avatar, TextInput, ActivityIndicator } from "react-native-paper"
 import { Ionicons } from "@expo/vector-icons"
 import { useNavigation } from "@react-navigation/native"
 import { useAuth } from "../../context/AuthContext"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { LinearGradient } from "expo-linear-gradient"
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated"
 import AlertMessage from "../../components/alertMessage"
 import FutureFeatureModal from "../../components/FutureFeatureModal"
 import ErrorMessage from "../../components/ErrorMessage"
 import LogoutConfirmationModal from "../../components/LogoutConfirmationModal"
 import * as ImagePicker from "expo-image-picker"
-import { useCallback } from "react"
 
 const { width } = Dimensions.get("window")
 
@@ -56,7 +55,12 @@ export default function ProfileScreen() {
   const [showAlert, setShowAlert] = useState(false)
   const [alertData, setAlertData] = useState({ title: "", message: "" })
   const [showFutureFeatureModal, setShowFutureFeatureModal] = useState(false)
-  const [futureFeatureInfo, setFutureFeatureInfo] = useState<{message: string, title: string, icon: keyof typeof Ionicons.glyphMap, releaseDate: string }>({message: "", title: "", icon: "alert", releaseDate: "" })
+  const [futureFeatureInfo, setFutureFeatureInfo] = useState<{
+    message: string
+    title: string
+    icon: keyof typeof Ionicons.glyphMap
+    releaseDate: string
+  }>({ message: "", title: "", icon: "alert", releaseDate: "" })
   const [showErrorMessage, setShowErrorMessage] = useState(false)
   const [errorData, setErrorData] = useState({ title: "", message: "" })
   const [showLogoutModal, setShowLogoutModal] = useState(false)
@@ -133,7 +137,8 @@ export default function ProfileScreen() {
       // Guardar cambios
       setProfileData({ ...tempProfileData })
       // En una implementación real, aquí se enviarían los datos al backend
-      updateUserProfile && updateUserProfile({ ...tempProfileData, profileImage: tempProfileData.profileImage || undefined })
+      updateUserProfile &&
+        updateUserProfile({ ...tempProfileData, profileImage: tempProfileData.profileImage || undefined })
       showAlertMessage("Perfil Actualizado", "Los cambios en tu perfil han sido guardados correctamente.")
     }
     setIsEditing(!isEditing)
@@ -222,7 +227,7 @@ Información de mi cuenta:
 
 Saludos,
 ${profileData.name}
-    `
+`
 
     const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
 
@@ -254,21 +259,7 @@ ${profileData.name}
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={primaryColor} />
-
-      {/* Header con gradiente */}
-      <LinearGradient
-        colors={[primaryColor, Platform.OS === "ios" ? primaryColor : primaryColor + "dd"]}
-        style={[styles.header, { paddingTop: insets.top + 10 }]}
-      >
-        <View style={styles.headerContent}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Ionicons name="chevron-back" size={24} color="white" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Mi Perfil</Text>
-          <View style={{ width: 24 }} />
-        </View>
-      </LinearGradient>
-
+      <AppHeader title="Mi Perfil" showBackButton />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* Tarjeta de Perfil */}
         <Animated.View entering={FadeIn.duration(300)}>
@@ -289,7 +280,10 @@ ${profileData.name}
                   />
                 )}
                 {!isEditing && !isUploading && (
-                  <TouchableOpacity style={styles.editAvatarButton} onPress={handleProfileImageUpload}>
+                  <TouchableOpacity
+                    style={[styles.editAvatarButton, { backgroundColor: primaryColor }]}
+                    onPress={handleProfileImageUpload}
+                  >
                     <Ionicons name="camera" size={18} color="white" />
                   </TouchableOpacity>
                 )}
@@ -312,13 +306,16 @@ ${profileData.name}
                 )}
 
                 <View style={[styles.roleChip, { backgroundColor: primaryColor + "20" }]}>
-                  <Text style={styles.roleText}>
+                  <Text style={[styles.roleText, { color: primaryColor }]}>
                     {user?.role === "admin" ? "Administrador" : user?.role === "technician" ? "Técnico" : "Cliente"}
                   </Text>
                 </View>
               </View>
 
-              <TouchableOpacity style={[styles.editButton, isEditing && styles.saveButton]} onPress={handleEditProfile}>
+              <TouchableOpacity
+                style={[styles.editButton, { backgroundColor: primaryColor }, isEditing && styles.saveButton]}
+                onPress={handleEditProfile}
+              >
                 <Ionicons name={isEditing ? "checkmark" : "create-outline"} size={20} color="white" />
               </TouchableOpacity>
             </View>
@@ -400,23 +397,6 @@ ${profileData.name}
                 ios_backgroundColor="#e5e7eb"
               />
             </View>
-
-            <Divider style={styles.settingDivider} />
-
-            <TouchableOpacity
-              style={styles.settingItem}
-              onPress={handleLanguageFeaturePress}
-            >
-              <View style={styles.settingInfo}>
-                <Ionicons name="language-outline" size={22} color={primaryColor} />
-                <Text style={styles.settingText}>Idioma</Text>
-              </View>
-              <View style={styles.comingSoonOverlay}>
-                <View style={[styles.comingSoonBadge, { backgroundColor: primaryColor + "20" }]}>
-                  <Text style={[styles.comingSoonText, { color: primaryColor }]}>Próximamente</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
           </Card>
         </Animated.View>
 
@@ -432,40 +412,6 @@ ${profileData.name}
               </View>
               <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
             </TouchableOpacity>
-
-            <Divider style={styles.settingDivider} />
-
-            <TouchableOpacity
-              style={styles.settingItem}
-              onPress={handleBiometricFeaturePress}
-            >
-              <View style={styles.settingInfo}>
-                <Ionicons name="finger-print" size={22} color={primaryColor} />
-                <Text style={styles.settingText}>Autenticación Biométrica</Text>
-              </View>
-              <View style={styles.comingSoonOverlay}>
-                <View style={[styles.comingSoonBadge, { backgroundColor: primaryColor + "20" }]}>
-                  <Text style={[styles.comingSoonText, { color: primaryColor }]}>Próximamente</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-
-            <Divider style={styles.settingDivider} />
-
-            <TouchableOpacity
-              style={styles.settingItem}
-              onPress={handleTwoFactorAuthFeaturePress}
-            >
-              <View style={styles.settingInfo}>
-                <Ionicons name="shield-checkmark-outline" size={22} color={primaryColor} />
-                <Text style={styles.settingText}>Verificación en Dos Pasos</Text>
-              </View>
-              <View style={styles.comingSoonOverlay}>
-                <View style={[styles.comingSoonBadge, { backgroundColor: primaryColor + "20" }]}>
-                  <Text style={[styles.comingSoonText, { color: primaryColor }]}>Próximamente</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
           </Card>
         </Animated.View>
 
@@ -474,23 +420,6 @@ ${profileData.name}
           <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Ayuda y Soporte</Text>
 
           <Card style={styles.settingsCard}>
-          <TouchableOpacity
-            style={styles.settingItem}
-            onPress={handleHelpCenterFeaturePress}
-          >
-              <View style={styles.settingInfo}>
-                <Ionicons name="help-circle-outline" size={22} color={primaryColor} />
-                <Text style={styles.settingText}>Centro de Ayuda</Text>
-              </View>
-              <View style={styles.comingSoonOverlay}>
-                <View style={[styles.comingSoonBadge, { backgroundColor: primaryColor + "20" }]}>
-                  <Text style={[styles.comingSoonText, { color: primaryColor }]}>Próximamente</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-
-            <Divider style={styles.settingDivider} />
-
             <TouchableOpacity style={styles.settingItem} onPress={handleContactSupport}>
               <View style={styles.settingInfo}>
                 <Ionicons name="chatbubble-ellipses-outline" size={22} color={primaryColor} />
@@ -571,7 +500,6 @@ ${profileData.name}
         onConfirm={confirmLogout}
         userName={profileData.name}
       />
-
     </View>
   )
 }
@@ -614,7 +542,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "white",
+    color: "black",
   },
   content: {
     padding: 16,
@@ -824,4 +752,3 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 })
-

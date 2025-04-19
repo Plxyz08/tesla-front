@@ -1,110 +1,101 @@
-import type {
-  ClockEvent,
-  WorkSession,
-  Report,
-  ReportTemplate,
-  TechnicianStats,
-  ClockEventType,
-} from "../models/technician"
+import type { ClockEvent, WorkSession, Report, ReportTemplate, TechnicianStats } from "../models/technician"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 
 // Technician API service
 const technicianApi = {
-  // Clock events
-  clockEvents: {
-    recordEvent: async (
-      technicianId: string,
-      eventType: ClockEventType,
-      location?: { latitude: number; longitude: number },
-      notes?: string,
-    ) => {
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 800))
+  // clockEvents: {
+  //   recordEvent: async (
+  //     technicianId: string,
+  //     eventType: ClockEventType,
+  //     location?: { latitude: number; longitude: number },
+  //     notes?: string,
+  //   ) => {
+  //     // Simulate API delay
+  //     await new Promise((resolve) => setTimeout(resolve, 800))
 
-      // In a real implementation, this would be a POST request to the API
-      const mockEvent: ClockEvent = {
-        id: `event-${Date.now()}`,
-        technicianId,
-        type: eventType,
-        timestamp: new Date().toISOString(),
-        location: location
-          ? {
-              ...location,
-              address: "Detected location", // In a real app, this would be a reverse geocoded address
-            }
-          : undefined,
-        notes,
-      }
+  //     // In a real implementation, this would be a POST request to the API
+  //     const mockEvent: ClockEvent = {
+  //       id: `event-${Date.now()}`,
+  //       technicianId,
+  //       type: eventType,
+  //       timestamp: new Date().toISOString(),
+  //       location: location
+  //         ? {
+  //             ...location,
+  //             address: "Detected location", // In a real app, this would be a reverse geocoded address
+  //           }
+  //         : undefined,
+  //       notes,
+  //     }
 
-      // Store in local storage for demo purposes
-      const storedEvents = await getStoredClockEvents()
-      storedEvents.push(mockEvent)
-      await storeClockEvents(storedEvents)
+  //     // Store in local storage for demo purposes
+  //     const storedEvents = await getStoredClockEvents()
+  //     storedEvents.push(mockEvent)
+  //     await storeClockEvents(storedEvents)
 
-      return {
-        success: true,
-        data: mockEvent,
-        message: `${eventType.replace("_", " ")} recorded successfully`,
-      }
-    },
+  //     return {
+  //       success: true,
+  //       data: mockEvent,
+  //       message: `${eventType.replace("_", " ")} recorded successfully`,
+  //     }
+  //   },
 
-    getAll: async (technicianId: string) => {
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+  //   getAll: async (technicianId: string) => {
+  //     // Simulate API delay
+  //     await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      // Get stored events
-      const storedEvents = await getStoredClockEvents()
-      const technicianEvents = storedEvents.filter((event) => event.technicianId === technicianId)
+  //     // Get stored events
+  //     const storedEvents = await getStoredClockEvents()
+  //     const technicianEvents = storedEvents.filter((event) => event.technicianId === technicianId)
 
-      return {
-        success: true,
-        data: technicianEvents,
-        message: "Clock events retrieved successfully",
-      }
-    },
-  },
+  //     return {
+  //       success: true,
+  //       data: technicianEvents,
+  //       message: "Clock events retrieved successfully",
+  //     }
+  //   },
+  // },
 
-  // Work sessions
-  workSessions: {
-    getAll: async (technicianId: string) => {
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+  // workSessions: {
+  //   getAll: async (technicianId: string) => {
+  //     // Simulate API delay
+  //     await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      // Get stored events
-      const storedEvents = await getStoredClockEvents()
-      const technicianEvents = storedEvents.filter((event) => event.technicianId === technicianId)
+  //     // Get stored events
+  //     const storedEvents = await getStoredClockEvents()
+  //     const technicianEvents = storedEvents.filter((event) => event.technicianId === technicianId)
 
-      // Calculate work sessions from clock events
-      const workSessions = calculateWorkSessions(technicianEvents)
+  //     // Calculate work sessions from clock events
+  //     const workSessions = calculateWorkSessions(technicianEvents)
 
-      return {
-        success: true,
-        data: workSessions,
-        message: "Work sessions retrieved successfully",
-      }
-    },
+  //     return {
+  //       success: true,
+  //       data: workSessions,
+  //       message: "Work sessions retrieved successfully",
+  //     }
+  //   },
 
-    getCurrent: async (technicianId: string) => {
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 500))
+  //   getCurrent: async (technicianId: string) => {
+  //     // Simulate API delay
+  //     await new Promise((resolve) => setTimeout(resolve, 500))
 
-      // Get stored events
-      const storedEvents = await getStoredClockEvents()
-      const technicianEvents = storedEvents.filter((event) => event.technicianId === technicianId)
+  //     // Get stored events
+  //     const storedEvents = await getStoredClockEvents()
+  //     const technicianEvents = storedEvents.filter((event) => event.technicianId === technicianId)
 
-      // Calculate work sessions from clock events
-      const workSessions = calculateWorkSessions(technicianEvents)
+  //     // Calculate work sessions from clock events
+  //     const workSessions = calculateWorkSessions(technicianEvents)
 
-      // Find the active session (if any)
-      const activeSession = workSessions.find((session) => session.status === "active" || session.status === "on_break")
+  //     // Find the active session (if any)
+  //     const activeSession = workSessions.find((session) => session.status === "active" || session.status === "on_break")
 
-      return {
-        success: true,
-        data: activeSession || null,
-        message: activeSession ? "Active work session retrieved" : "No active work session found",
-      }
-    },
-  },
+  //     return {
+  //       success: true,
+  //       data: activeSession || null,
+  //       message: activeSession ? "Active work session retrieved" : "No active work session found",
+  //     }
+  //   },
+  // },
 
   // Reports
   reports: {
@@ -884,4 +875,3 @@ const calculateWorkSessions = (events: ClockEvent[]): WorkSession[] => {
 }
 
 export default technicianApi
-

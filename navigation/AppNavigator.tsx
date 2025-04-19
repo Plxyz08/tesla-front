@@ -11,7 +11,8 @@ import { DrawerActions } from "@react-navigation/native"
 
 // Auth Screens
 import LoginScreen from "../screens/auth/LoginScreen"
-import RegisterScreen from "../screens/auth/RegisterScreen"
+// Remove this import:
+// import RegisterScreen from "../screens/auth/RegisterScreen";
 
 // Client Screens
 import ClientDashboardScreen from "../screens/client/DashboardScreen"
@@ -57,7 +58,6 @@ const Drawer = createDrawerNavigator()
 const AuthNavigator = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="Login" component={LoginScreen} />
-    <Stack.Screen name="Register" component={RegisterScreen} />
   </Stack.Navigator>
 )
 
@@ -488,6 +488,7 @@ const AppNavigator = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {!user ? (
+        // Remove the Stack Screen from AppNavigator:
         <Stack.Screen name="Auth" component={AuthNavigator} />
       ) : (
         <>

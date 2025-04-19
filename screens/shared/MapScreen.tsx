@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import {
   View,
   Text,
@@ -10,8 +10,9 @@ import {
   Linking,
   ActivityIndicator,
   TouchableWithoutFeedback,
+  Platform,
 } from "react-native"
-import MapView, { Marker, PROVIDER_GOOGLE, Callout, Circle, type MapStyleElement, type Region } from "react-native-maps"
+import MapView, { Marker, Callout, PROVIDER_GOOGLE, type MapStyleElement, type Region, Circle } from "react-native-maps"
 import { Ionicons, MaterialIcons } from "@expo/vector-icons"
 import * as Location from "expo-location"
 import Animated, {
@@ -199,14 +200,24 @@ const TESLA_OFFICE = {
 // Marker animation duration
 const ANIMATION_DURATION = 300
 
+interface MarkerType {
+  latitude: number
+  longitude: number
+  title: string
+  description: string
+  type: string
+}
+
+const { width } = Dimensions.get("window")
+
 export default function MapScreen() {
   const mapRef = useRef<MapView>(null)
   const insets = useSafeAreaInsets()
 
   // State variables
-  const [selectedMarker, setSelectedMarker] = useState<any>(null)
+  const [selectedMarker, setSelectedMarker] = useState<MarkerType | null>(null)
   const [initialRegion, setInitialRegion] = useState<Region | null>(null)
-  const [userLocation, setUserLocation] = useState<any>(null)
+  const [userLocation, setUserLocation] = useState<Location.LocationObjectCoords | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [locationError, setLocationError] = useState<string | null>(null)
   const [mapType, setMapType] = useState<"standard" | "satellite" | "hybrid">("standard")
@@ -259,7 +270,7 @@ export default function MapScreen() {
 
   // Handle marker press
   const handleMarkerPress = useCallback(
-    (marker: any) => {
+    (marker: MarkerType) => {
       // Set selected marker with animation
       setSelectedMarker(null)
 
@@ -271,17 +282,7 @@ export default function MapScreen() {
         infoCardHeight.value = withTiming(1, { duration: ANIMATION_DURATION })
 
         // Animate map to show marker
-        if (marker.coordinates) {
-          mapRef.current?.animateToRegion(
-            {
-              latitude: marker.coordinates.latitude,
-              longitude: marker.coordinates.longitude,
-              latitudeDelta: 0.005,
-              longitudeDelta: 0.005,
-            },
-            500,
-          )
-        } else if (marker.latitude) {
+        if (marker.latitude && marker.longitude) {
           mapRef.current?.animateToRegion(
             {
               latitude: marker.latitude,
@@ -440,19 +441,23 @@ export default function MapScreen() {
         }}
       >
         {/* Tesla Lift Office Marker */}
-        <Marker coordinate={TESLA_OFFICE} onPress={() => handleMarkerPress({ ...TESLA_OFFICE, type: "office" })}>
-          <View style={styles.officeMarkerContainer}>
-            <BlurView intensity={80} style={styles.officeMarkerBlur}>
-              <MaterialIcons name="business" size={24} color="#f7be0d" />
-            </BlurView>
-          </View>
-          <Callout>
-            <View style={styles.calloutContainer}>
-              <Text style={styles.calloutTitle}>{TESLA_OFFICE.title}</Text>
-              <Text style={styles.calloutDescription}>{TESLA_OFFICE.description}</Text>
+        {TESLA_OFFICE.latitude && TESLA_OFFICE.longitude && (
+          <Marker coordinate={TESLA_OFFICE} onPress={() => handleMarkerPress({ ...TESLA_OFFICE, type: "office" })}>
+            <View style={styles.officeMarkerContainer}>
+              <BlurView intensity={80} style={styles.officeMarkerBlur}>
+                <MaterialIcons name="business" size={24} color="#f7be0d" />
+              </BlurView>
             </View>
-          </Callout>
-        </Marker>
+            {Platform.OS === "android" && (
+              <Callout>
+                <View style={styles.calloutContainer}>
+                  <Text style={styles.calloutTitle}>{TESLA_OFFICE.title}</Text>
+                  <Text style={styles.calloutDescription}>{TESLA_OFFICE.description}</Text>
+                </View>
+              </Callout>
+            )}
+          </Marker>
+        )}
 
         {/* User location marker with accuracy circle */}
         {isMapReady && userLocation && (
@@ -464,18 +469,31 @@ export default function MapScreen() {
               strokeColor="rgba(247, 190, 13, 0.3)"
               strokeWidth={1}
             />
-            <Marker coordinate={userLocation} onPress={() => handleMarkerPress({ type: "user" })}>
+            <Marker
+              coordinate={userLocation}
+              onPress={() =>
+                handleMarkerPress({
+                  latitude: userLocation.latitude,
+                  longitude: userLocation.longitude,
+                  title: "Mi Ubicación",
+                  description: "Esta es tu ubicación actual",
+                  type: "user",
+                })
+              }
+            >
               <View style={styles.userMarkerContainer}>
                 <View style={styles.userMarkerBackground}>
                   <Ionicons name="person" size={20} color="white" />
                 </View>
                 <View style={styles.userMarkerRing} />
               </View>
-              <Callout>
-                <View style={styles.calloutContainer}>
-                  <Text style={styles.calloutTitle}>Mi Ubicación</Text>
-                </View>
-              </Callout>
+              {Platform.OS === "android" && (
+                <Callout>
+                  <View style={styles.calloutContainer}>
+                    <Text style={styles.calloutTitle}>Mi Ubicación</Text>
+                  </View>
+                </Callout>
+              )}
             </Marker>
           </>
         )}
@@ -638,6 +656,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f9fafb",
   },
+  mapControlButton: {
+    marginBottom: 10,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "white",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
   map: {
     width: Dimensions.get("window").width,
     height: Dimensions.get("window").height,
@@ -646,6 +678,20 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "transparent",
     zIndex: 1,
+  },
+  mapControls: {
+    position: "absolute",
+    right: 20,
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  mapControlBlur: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
   },
   loadingContainer: {
     flex: 1,
@@ -744,73 +790,56 @@ const styles = StyleSheet.create({
     borderColor: "white",
   },
   userMarkerContainer: {
+    width: 30,
+    height: 30,
     alignItems: "center",
     justifyContent: "center",
   },
   userMarkerBackground: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#f7be0d",
-    justifyContent: "center",
+    backgroundColor: "dodgerblue",
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     alignItems: "center",
-    borderWidth: 2,
-    borderColor: "white",
+    justifyContent: "center",
   },
   userMarkerRing: {
     position: "absolute",
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     borderWidth: 2,
-    borderColor: "rgba(247, 190, 13, 0.3)",
+    borderColor: "rgba(30,144,255,0.3)",
+    backgroundColor: "transparent",
   },
   calloutContainer: {
-    width: 200,
-    padding: 12,
-    backgroundColor: "white",
-    borderRadius: 8,
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    width: 150,
+    padding: 10,
   },
   calloutTitle: {
     fontWeight: "bold",
-    fontSize: 14,
-    marginBottom: 4,
-    color: "#1f2937",
+    fontSize: 16,
   },
   calloutDescription: {
-    fontSize: 12,
-    color: "#4b5563",
-    marginBottom: 4,
+    fontSize: 14,
   },
-  statusIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 6,
-  },
-  mapControls: {
+  buttonContainer: {
     position: "absolute",
-    top: 300,
-    right: 16,
-    flexDirection: "column",
-    zIndex: 5,
+    bottom: 20,
+    right: 20,
   },
-  mapControlButton: {
+  zoomButton: {
     backgroundColor: "white",
-    marginBottom: 12,
-    borderRadius: 22,
-    overflow: "hidden",
-  },
-  mapControlBlur: {
-    width: 44,
-    height: 44,
-    justifyContent: "center",
-    alignItems: "center",
+    padding: 10,
+    borderRadius: 5,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   selectedMarkerInfo: {
     position: "absolute",
