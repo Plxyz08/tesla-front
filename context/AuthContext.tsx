@@ -25,6 +25,7 @@ interface AuthContextType {
   logout: () => void
   updateUserProfile: (data: Partial<User>) => Promise<User>
   register: (userData: any, role: UserRole) => Promise<boolean>
+  users: User[] // Add users to the AuthContextType
 }
 
 // Create context
@@ -35,6 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [users, setUsers] = useState<User[]>([]) // Add users state
 
   // Check for existing session on mount
   useEffect(() => {
@@ -161,6 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: role,
         profileImage: userData.profileImage,
         phone: userData.phone,
+        ...(role === "technician" ? { specialization: [] } : {}),
       }
 
       // Save user data to secure storage
@@ -169,6 +172,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Update state
       setUser(newUser)
       setIsAuthenticated(true)
+
+      // Update users list
+      setUsers((prevUsers) => [...prevUsers, newUser])
 
       return true
     } catch (error) {
@@ -189,6 +195,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     updateUserProfile,
     register,
+    users, // Add users to the context value
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
@@ -204,3 +211,5 @@ export const useAuth = () => {
 
   return context
 }
+
+export type { User }

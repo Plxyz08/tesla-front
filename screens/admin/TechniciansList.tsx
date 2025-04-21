@@ -6,10 +6,10 @@ import { Searchbar, Card, Button, Chip, FAB, Dialog, Portal, Divider, Menu } fro
 import { Ionicons } from "@expo/vector-icons"
 import { useNavigation } from "@react-navigation/native"
 import AppHeader from "../../components/AppHeader"
+import { useAuth } from "../../context/AuthContext"
+import type { User } from "../../context/AuthContext"
 
-interface Technician {
-  id: string
-  name: string
+interface Technician extends User {
   email: string
   phone: string
   photo: string
@@ -21,6 +21,7 @@ interface Technician {
 
 export default function TechniciansList() {
   const navigation = useNavigation<any>()
+  const { user, users } = useAuth()
   const [searchQuery, setSearchQuery] = useState("")
   const [technicians, setTechnicians] = useState<Technician[]>([])
   const [filteredTechnicians, setFilteredTechnicians] = useState<Technician[]>([])
@@ -39,67 +40,11 @@ export default function TechniciansList() {
 
   // Cargar datos de ejemplo
   useEffect(() => {
-    const mockTechnicians: Technician[] = [
-      {
-        id: "1",
-        name: "Carlos Rodríguez",
-        email: "carlos.rodriguez@teslalifts.com",
-        phone: "+51 999 888 777",
-        photo: "https://i.pravatar.cc/150?u=a042581f4e29026704d",
-        status: "active",
-        specialization: ["Mantenimiento", "Instalación"],
-        reportsCount: 15,
-        lastActive: "2023-05-15",
-      },
-      {
-        id: "2",
-        name: "María López",
-        email: "maria.lopez@teslalifts.com",
-        phone: "+51 999 777 666",
-        photo: "https://i.pravatar.cc/150?u=a042581f4e29026705e",
-        status: "active",
-        specialization: ["Reparación", "Emergencias"],
-        reportsCount: 12,
-        lastActive: "2023-05-18",
-      },
-      {
-        id: "3",
-        name: "Juan Pérez",
-        email: "juan.perez@teslalifts.com",
-        phone: "+51 999 666 555",
-        photo: "https://i.pravatar.cc/150?u=a042581f4e29026706f",
-        status: "inactive",
-        specialization: ["Mantenimiento", "Inspección"],
-        reportsCount: 8,
-        lastActive: "2023-05-10",
-      },
-      {
-        id: "4",
-        name: "Ana Gómez",
-        email: "ana.gomez@teslalifts.com",
-        phone: "+51 999 555 444",
-        photo: "https://i.pravatar.cc/150?u=a042581f4e29026707g",
-        status: "on_leave",
-        specialization: ["Instalación", "Modernización"],
-        reportsCount: 10,
-        lastActive: "2023-05-12",
-      },
-      {
-        id: "5",
-        name: "Pedro Sánchez",
-        email: "pedro.sanchez@teslalifts.com",
-        phone: "+51 999 444 333",
-        photo: "https://i.pravatar.cc/150?u=a042581f4e29026708h",
-        status: "active",
-        specialization: ["Certificación", "Inspección"],
-        reportsCount: 7,
-        lastActive: "2023-05-17",
-      },
-    ]
-
-    setTechnicians(mockTechnicians)
-    setFilteredTechnicians(mockTechnicians)
-  }, [])
+    // Filter technicians from all users
+    const technicianList = users?.filter((user): user is Technician => user.role === "technician") as Technician[]
+    setTechnicians(technicianList || [])
+    setFilteredTechnicians(technicianList || [])
+  }, [users])
 
   // Filtrar técnicos
   useEffect(() => {
@@ -133,7 +78,6 @@ export default function TechniciansList() {
   const onChangeSearch = (query: string) => setSearchQuery(query)
 
   const handleAddTechnician = () => {
-    // Add this line inside the handleAddTechnician function:
     navigation.navigate("CreateUser")
   }
 
@@ -256,11 +200,12 @@ export default function TechniciansList() {
         </View>
 
         <View style={styles.specializationContainer}>
-          {item.specialization.map((spec) => (
-            <Chip key={spec} style={styles.specializationChip}>
-              {spec}
-            </Chip>
-          ))}
+          {Array.isArray(item.specialization) &&
+            item.specialization.map((spec) => (
+              <Chip key={spec} style={styles.specializationChip}>
+                {spec}
+              </Chip>
+            ))}
         </View>
 
         <View style={styles.statsContainer}>

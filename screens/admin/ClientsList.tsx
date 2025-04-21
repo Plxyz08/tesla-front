@@ -7,10 +7,9 @@ import { Ionicons } from "@expo/vector-icons"
 import { useNavigation } from "@react-navigation/native"
 import AppHeader from "../../components/AppHeader"
 import { useAuth } from "../../context/AuthContext"
+import type { User } from "../../context/AuthContext"
 
-interface Client {
-  id: string
-  name: string
+interface Client extends User {
   ruc: string
   email: string
   phone: string
@@ -26,7 +25,7 @@ interface Client {
 
 export default function ClientsList() {
   const navigation = useNavigation<any>()
-  const { user } = useAuth()
+  const { user, users } = useAuth()
   const [searchQuery, setSearchQuery] = useState("")
   const [clients, setClients] = useState<Client[]>([])
   const [filteredClients, setFilteredClients] = useState<Client[]>([])
@@ -45,89 +44,15 @@ export default function ClientsList() {
     invoiceStatus: [],
   })
 
-  // Cargar datos de ejemplo
-  useEffect(() => {
-    const mockClients: Client[] = [
-      {
-        id: "1",
-        name: "Torre Empresarial Lima",
-        ruc: "20123456789",
-        email: "admin@torreempresarial.com",
-        phone: "+51 1 234 5678",
-        address: "Av. La Encalada 1234, Surco, Lima",
-        status: "active",
-        contractType: "annual",
-        invoiceStatus: "paid",
-        buildings: 1,
-        lifts: 4,
-        contactPerson: "Juan Pérez",
-        lastInvoiceDate: "2023-05-01",
-      },
-      {
-        id: "2",
-        name: "Centro Comercial Plaza",
-        ruc: "20987654321",
-        email: "admin@ccplaza.com",
-        phone: "+51 1 987 6543",
-        address: "Av. Javier Prado 567, San Isidro, Lima",
-        status: "active",
-        contractType: "monthly",
-        invoiceStatus: "pending",
-        buildings: 2,
-        lifts: 8,
-        contactPerson: "María Rodríguez",
-        lastInvoiceDate: "2023-05-15",
-      },
-      {
-        id: "3",
-        name: "Hospital Nacional",
-        ruc: "20456789123",
-        email: "admin@hospitalnacional.com",
-        phone: "+51 1 456 7890",
-        address: "Av. Grau 800, Lima",
-        status: "pending",
-        contractType: "project",
-        invoiceStatus: "overdue",
-        buildings: 1,
-        lifts: 6,
-        contactPerson: "Carlos Gómez",
-        lastInvoiceDate: "2023-04-20",
-      },
-      {
-        id: "4",
-        name: "Residencial Miraflores",
-        ruc: "20345678912",
-        email: "admin@residencialmiraflores.com",
-        phone: "+51 1 345 6789",
-        address: "Calle Berlín 1500, Miraflores, Lima",
-        status: "active",
-        contractType: "annual",
-        invoiceStatus: "paid",
-        buildings: 1,
-        lifts: 2,
-        contactPerson: "Ana Sánchez",
-        lastInvoiceDate: "2023-05-10",
-      },
-      {
-        id: "5",
-        name: "Edificio Corporativo Sigma",
-        ruc: "20234567891",
-        email: "admin@edificiosigma.com",
-        phone: "+51 1 234 5678",
-        address: "Av. República de Panamá 3030, San Isidro, Lima",
-        status: "inactive",
-        contractType: "monthly",
-        invoiceStatus: "overdue",
-        buildings: 1,
-        lifts: 5,
-        contactPerson: "Pedro Martínez",
-        lastInvoiceDate: "2023-04-15",
-      },
-    ]
+  // const [clients, setClients] = useState<Client[]>([]); // Removed duplicate declaration
+  // const [filteredClients, setFilteredClients] = useState<Client[]>([]) // Removed duplicate declaration
 
-    setClients(mockClients)
-    setFilteredClients(mockClients)
-  }, [])
+  useEffect(() => {
+    // Filter clients from all users
+    const clientList = users?.filter((user): user is Client => user.role === "client") || []
+    setClients(clientList)
+    setFilteredClients(clientList)
+  }, [users])
 
   // Filtrar clientes
   useEffect(() => {
@@ -165,7 +90,7 @@ export default function ClientsList() {
   const onChangeSearch = (query: string) => setSearchQuery(query)
 
   const handleAddClient = () => {
-    navigation.navigate("EditClient")
+    navigation.navigate("CreateUser")
   }
 
   const handleEditClient = (client: Client) => {
