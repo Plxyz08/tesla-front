@@ -19,7 +19,11 @@ import * as ImagePicker from "expo-image-picker"
 import AppHeader from "../../components/AppHeader"
 import AlertMessage from "../../components/alertMessage"
 import ErrorMessage from "../../components/ErrorMessage"
+// Importar el contexto de autenticación
+import { useAuth, type UserRole } from "../../context/AuthContext"
+import * as FileSystem from "expo-file-system"
 
+// Modificar la interfaz RouteParams
 interface RouteParams {
   clientId?: string
 }
@@ -29,6 +33,9 @@ export default function EditClientScreen() {
   const route = useRoute()
   const { clientId } = (route.params as RouteParams) || {}
   const isEditing = !!clientId
+
+  // Añadir dentro del componente EditClientScreen
+  const { users, updateUser } = useAuth()
 
   // Estados para los campos del formulario
   const [name, setName] = useState("")
@@ -45,6 +52,10 @@ export default function EditClientScreen() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
+
+  // Añadir estados para los nuevos campos
+  const [buildingName, setBuildingName] = useState("")
+  const [elevatorBrand, setElevatorBrand] = useState("")
 
   // Alert message state
   const [alertVisible, setAlertVisible] = useState(false)
@@ -76,44 +87,36 @@ export default function EditClientScreen() {
   const [alertData, setAlertData] = useState({ type: "success", title: "", message: "" })
   const [errorData, setErrorData] = useState({ title: "", message: "" })
 
-  // Cargar datos del cliente si estamos en modo edición
+  // Modificar el useEffect para cargar datos reales
   useEffect(() => {
-    if (isEditing) {
-      // En una aplicación real, esto cargaría los datos del cliente desde una API
-      // Aquí simulamos la carga con datos de ejemplo
+    if (isEditing && clientId) {
       setIsLoading(true)
-      setTimeout(() => {
-        // Datos de ejemplo para simular la carga
-        const mockClient = {
-          id: clientId,
-          name: "Torre Empresarial Lima",
-          ruc: "20123456789",
-          email: "admin@torreempresarial.com",
-          phone: "+51 1 234 5678",
-          photo: "https://i.pravatar.cc/150?u=a042581f4e29026704c",
-          address: "Av. La Encalada 1234, Surco, Lima",
-          contactPerson: "Juan Pérez",
-          status: "active" as "active" | "inactive" | "pending",
-          contractType: "annual" as "monthly" | "annual" | "project",
-          buildings: 1,
-          lifts: 4,
-        }
 
-        setName(mockClient.name)
-        setRuc(mockClient.ruc)
-        setEmail(mockClient.email)
-        setPhone(mockClient.phone)
-        setPhoto(mockClient.photo)
-        setAddress(mockClient.address)
-        setContactPerson(mockClient.contactPerson)
-        setStatus(mockClient.status)
-        setContractType(mockClient.contractType)
-        setBuildings(mockClient.buildings.toString())
-        setLifts(mockClient.lifts.toString())
+      // Buscar el cliente en la lista de usuarios
+      const client = users?.find((user) => user.id === clientId)
+
+      if (client) {
+        setName(client.name || "")
+        setRuc(client.ruc || "")
+        setEmail(client.email || "")
+        setPhone(client.phone || "")
+        setPhoto(client.photo || null)
+        setAddress(client.address || "")
+        setStatus((client.status as "active" | "inactive" | "pending") || "active")
+        setBuildings((client.elevatorCount || 1).toString())
+        setLifts((client.floorCount || 1).toString())
+        setBuildingName(client.buildingName || "")
+        setElevatorBrand(client.elevatorBrand || "")
+
         setIsLoading(false)
-      }, 1000)
+      } else {
+        // Si no se encuentra el cliente, mostrar un error
+        showErrorAlert("Error", "No se pudo encontrar la información del cliente")
+        setIsLoading(false)
+        navigation.goBack()
+      }
     }
-  }, [isEditing, clientId])
+  }, [isEditing, clientId, users])
 
   // Función para seleccionar una imagen de la galería
   const pickImage = async () => {
@@ -205,8 +208,8 @@ export default function EditClientScreen() {
     return Object.keys(newErrors).length === 0
   }
 
-  // Función para guardar el cliente
-  const handleSave = () => {
+  // Modificar la función handleSave para guardar los cambios reales
+  const handleSave = async () => {
     if (!validateForm()) {
       Alert.alert("Error", "Por favor, corrija los errores en el formulario")
       return
@@ -214,40 +217,70 @@ export default function EditClientScreen() {
 
     setIsLoading(true)
 
-    // Simulamos una llamada a la API
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      // Preparar los datos del cliente
+      let photoUrl = photo
 
-      // Datos que se enviarían a la API
-      const clientData = {
-        id: isEditing ? clientId : Math.random().toString(36).substring(2, 9),
+      // Si hay una nueva foto seleccionada y es una URI local, subirla a Cloudinary
+      if (photo && photo.startsWith("file://")) {
+        try {
+          const base64 = await FileSystem.readAsStringAsync(photo, {
+            encoding: FileSystem.EncodingType.Base64,
+          })
+
+          const formData = new FormData()
+          formData.append("file", `data:image/jpeg;base64,${base64}`)
+          formData.append("upload_preset", "teslalift-perfil")
+
+          const response = await fetch("https://api.cloudinary.com/v1_1/your-cloud-name/image/upload", {
+            method: "POST",
+            body: formData,
+          })
+
+          const data = await response.json()
+          photoUrl = data.secure_url
+        } catch (error) {
+          console.error("Error al subir la imagen:", error)
+          setIsLoading(false)
+          showErrorAlert("Error", "No se pudo subir la imagen. Inténtelo de nuevo.")
+          return
+        }
+      }
+
+      // Datos actualizados del cliente
+      const updatedClient = {
+        id: clientId || Math.random().toString(36).substring(2, 9),
         name,
         ruc,
         email,
         phone,
-        photo,
+        photo: photoUrl || undefined,
         address,
-        contactPerson,
         status,
-        contractType,
-        buildings: Number.parseInt(buildings),
-        lifts: Number.parseInt(lifts),
-        password: isEditing ? undefined : password,
+        role: "client" as UserRole,
+        buildingName,
+        elevatorBrand,
+        elevatorCount: Number.parseInt(buildings, 10),
+        floorCount: Number.parseInt(lifts, 10),
       }
 
-      console.log("Datos del cliente a guardar:", clientData)
+      // Actualizar el usuario en el contexto
+      await updateUser(updatedClient)
 
-      Alert.alert(
+      setIsLoading(false)
+      showSuccessAlert(
         "Éxito",
         isEditing ? `Cliente ${name} actualizado correctamente` : `Cliente ${name} creado correctamente`,
-        [
-          {
-            text: "OK",
-            onPress: () => navigation.goBack(),
-          },
-        ],
       )
-    }, 1500)
+
+      // Navegar de vuelta después de un breve retraso
+      setTimeout(() => {
+        navigation.goBack()
+      }, 1500)
+    } catch (error) {
+      setIsLoading(false)
+      showErrorAlert("Error", "Ocurrió un error al guardar los datos. Inténtelo de nuevo.")
+    }
   }
 
   // Función para cambiar el estado del cliente
@@ -389,6 +422,28 @@ export default function EditClientScreen() {
               activeOutlineColor="#7c3aed"
             />
             {errors.contactPerson && <HelperText type="error">{errors.contactPerson}</HelperText>}
+
+            {/* Añadir campos para el nombre del edificio y marca del ascensor en el formulario */}
+            {/* Dentro de la sección "Información del Cliente" */}
+            <TextInput
+              label="Nombre del edificio o empresa"
+              value={buildingName}
+              onChangeText={setBuildingName}
+              mode="outlined"
+              style={styles.input}
+              outlineColor="#e5e7eb"
+              activeOutlineColor="#7c3aed"
+            />
+
+            <TextInput
+              label="Marca del ascensor"
+              value={elevatorBrand}
+              onChangeText={setElevatorBrand}
+              mode="outlined"
+              style={styles.input}
+              outlineColor="#e5e7eb"
+              activeOutlineColor="#7c3aed"
+            />
           </View>
 
           {/* Sección de detalles del edificio */}
@@ -432,33 +487,6 @@ export default function EditClientScreen() {
                 {errors.lifts && <HelperText type="error">{errors.lifts}</HelperText>}
               </View>
             </View>
-          </View>
-
-          {/* Sección de tipo de contrato */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Tipo de Contrato</Text>
-            <SegmentedButtons
-              value={contractType}
-              onValueChange={(value) => setContractType(value as "monthly" | "annual" | "project")}
-              buttons={[
-                {
-                  value: "monthly",
-                  label: "Mensual",
-                  style: contractType === "monthly" ? styles.selectedSegment : {},
-                },
-                {
-                  value: "annual",
-                  label: "Anual",
-                  style: contractType === "annual" ? styles.selectedSegment : {},
-                },
-                {
-                  value: "project",
-                  label: "Proyecto",
-                  style: contractType === "project" ? styles.selectedSegment : {},
-                },
-              ]}
-              style={styles.segmentedButtons}
-            />
           </View>
 
           {/* Sección de estado */}

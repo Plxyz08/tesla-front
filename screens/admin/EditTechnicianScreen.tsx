@@ -20,6 +20,10 @@ import AppHeader from "../../components/AppHeader"
 import AlertMessage from "../../components/alertMessage"
 import ErrorMessage from "../../components/ErrorMessage"
 
+// Importar el contexto de autenticación
+import { useAuth, type UserRole } from "../../context/AuthContext"
+import * as FileSystem from "expo-file-system"
+
 // Tipos de especialización disponibles para los técnicos
 const SPECIALIZATIONS = [
   "Mantenimiento",
@@ -31,6 +35,7 @@ const SPECIALIZATIONS = [
   "Certificación",
 ]
 
+// Modificar la interfaz RouteParams
 interface RouteParams {
   technicianId?: string
 }
@@ -85,34 +90,34 @@ export default function EditTechnicianScreen() {
     message: "",
   })
 
+  // Añadir dentro del componente EditTechnicianScreen
+  const { users, updateUser } = useAuth()
+
   // Cargar datos del técnico si estamos en modo edición
   useEffect(() => {
-    if (isEditing) {
-      // En una aplicación real, esto cargaría los datos del técnico desde una API
-      // Aquí simulamos la carga con datos de ejemplo
+    if (isEditing && technicianId) {
       setIsLoading(true)
-      setTimeout(() => {
-        // Datos de ejemplo para simular la carga
-        const mockTechnician = {
-          id: technicianId,
-          name: "Carlos Rodríguez",
-          email: "carlos.rodriguez@teslalifts.com",
-          phone: "+51 999 888 777",
-          photo: "https://i.pravatar.cc/150?u=a042581f4e29026704d",
-          status: "active" as "active" | "inactive" | "on_leave",
-          specialization: ["Mantenimiento", "Instalación"],
-        }
 
-        setName(mockTechnician.name)
-        setEmail(mockTechnician.email)
-        setPhone(mockTechnician.phone)
-        setPhoto(mockTechnician.photo)
-        setStatus(mockTechnician.status)
-        setSpecializations(mockTechnician.specialization)
+      // Buscar el técnico en la lista de usuarios
+      const technician = users?.find((user) => user.id === technicianId)
+
+      if (technician) {
+        setName(technician.name || "")
+        setEmail(technician.email || "")
+        setPhone(technician.phone || "")
+        setPhoto(technician.photo || null)
+        setStatus((technician.status as "active" | "inactive" | "on_leave") || "active")
+        setSpecializations(technician.specialization || [])
+
         setIsLoading(false)
-      }, 1000)
+      } else {
+        // Si no se encuentra el técnico, mostrar un error
+        showErrorAlert("Error", "No se pudo encontrar la información del técnico")
+        setIsLoading(false)
+        navigation.goBack()
+      }
     }
-  }, [isEditing, technicianId])
+  }, [isEditing, technicianId, users])
 
   // Función para seleccionar una imagen de la galería
   const pickImage = async () => {
@@ -191,8 +196,8 @@ export default function EditTechnicianScreen() {
     return Object.keys(newErrors).length === 0
   }
 
-  // Función para guardar el técnico
-  const handleSave = () => {
+  // Modificar la función handleSave para guardar los cambios reales
+  const handleSave = async () => {
     if (!validateForm()) {
       Alert.alert("Error", "Por favor, corrija los errores en el formulario")
       return
@@ -200,35 +205,65 @@ export default function EditTechnicianScreen() {
 
     setIsLoading(true)
 
-    // Simulamos una llamada a la API
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      // Preparar los datos del técnico
+      let photoUrl = photo
 
-      // Datos que se enviarían a la API
-      const technicianData = {
-        id: isEditing ? technicianId : Math.random().toString(36).substring(2, 9),
+      // Si hay una nueva foto seleccionada y es una URI local, subirla a Cloudinary
+      if (photo && photo.startsWith("file://")) {
+        try {
+          const base64 = await FileSystem.readAsStringAsync(photo, {
+            encoding: FileSystem.EncodingType.Base64,
+          })
+
+          const formData = new FormData()
+          formData.append("file", `data:image/jpeg;base64,${base64}`)
+          formData.append("upload_preset", "teslalift-perfil")
+
+          const response = await fetch("https://api.cloudinary.com/v1_1/your-cloud-name/image/upload", {
+            method: "POST",
+            body: formData,
+          })
+
+          const data = await response.json()
+          photoUrl = data.secure_url
+        } catch (error) {
+          console.error("Error al subir la imagen:", error)
+          setIsLoading(false)
+          showErrorAlert("Error", "No se pudo subir la imagen. Inténtelo de nuevo.")
+          return
+        }
+      }
+
+      // Datos actualizados del técnico
+      const updatedTechnician = {
+        id: technicianId || Math.random().toString(36).substring(2, 9),
         name,
         email,
         phone,
-        photo,
+        photo: photoUrl || undefined,
         status,
+        role: "technician" as UserRole,
         specialization: specializations,
-        password: isEditing ? undefined : password,
       }
 
-      console.log("Datos del técnico a guardar:", technicianData)
+      // Actualizar el usuario en el contexto
+      await updateUser(updatedTechnician)
 
-      Alert.alert(
+      setIsLoading(false)
+      showSuccessAlert(
         "Éxito",
         isEditing ? `Técnico ${name} actualizado correctamente` : `Técnico ${name} creado correctamente`,
-        [
-          {
-            text: "OK",
-            onPress: () => navigation.goBack(),
-          },
-        ],
       )
-    }, 1500)
+
+      // Navegar de vuelta después de un breve retraso
+      setTimeout(() => {
+        navigation.goBack()
+      }, 1500)
+    } catch (error) {
+      setIsLoading(false)
+      showErrorAlert("Error", "Ocurrió un error al guardar los datos. Inténtelo de nuevo.")
+    }
   }
 
   // Función para cambiar el estado del técnico

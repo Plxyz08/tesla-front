@@ -9,14 +9,9 @@ import AppHeader from "../../components/AppHeader"
 import { useAuth } from "../../context/AuthContext"
 import type { User } from "../../context/AuthContext"
 
+// Modificar la interfaz Technician para que coincida con la estructura de datos real
 interface Technician extends User {
-  email: string
-  phone: string
-  photo: string
-  status: "active" | "inactive" | "on_leave"
-  specialization: string[]
-  reportsCount: number
-  lastActive?: string
+  // No necesitamos redefinir propiedades que ya están en User
 }
 
 export default function TechniciansList() {
@@ -39,6 +34,7 @@ export default function TechniciansList() {
   })
 
   // Cargar datos de ejemplo
+  // Modificar el useEffect para mapear correctamente los datos
   useEffect(() => {
     // Filter technicians from all users
     const technicianList = users?.filter((user): user is Technician => user.role === "technician") as Technician[]
@@ -56,19 +52,19 @@ export default function TechniciansList() {
         (technician) =>
           technician.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           technician.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          technician.phone.includes(searchQuery),
+          technician.phone?.includes(searchQuery),
       )
     }
 
     // Aplicar filtros de estado
     if (selectedFilters.status.length > 0) {
-      result = result.filter((technician) => selectedFilters.status.includes(technician.status))
+      result = result.filter((technician) => technician.status && selectedFilters.status.includes(technician.status))
     }
 
     // Aplicar filtros de especialización
     if (selectedFilters.specialization.length > 0) {
       result = result.filter((technician) =>
-        technician.specialization.some((spec) => selectedFilters.specialization.includes(spec)),
+        technician.specialization?.some((spec) => selectedFilters.specialization.includes(spec)),
       )
     }
 
@@ -179,46 +175,31 @@ export default function TechniciansList() {
     </TouchableOpacity>
   )
 
+  // Modificar el renderItem para mostrar correctamente los datos
   const renderItem = ({ item }: { item: Technician }) => (
     <Card style={styles.technicianCard}>
       <Card.Content>
         <View style={styles.technicianHeader}>
-          <Image source={{ uri: item.photo }} style={styles.technicianPhoto} />
+          {item.photo ? (
+            <Image source={{ uri: item.photo }} style={styles.technicianPhoto} />
+          ) : (
+            <View style={styles.photoPlaceholder}>
+              <Ionicons name="person" size={30} color="#d1d5db" />
+            </View>
+          )}
           <View style={styles.technicianInfo}>
             <Text style={styles.technicianName}>{item.name}</Text>
             <Text style={styles.technicianEmail}>{item.email}</Text>
-            <Text style={styles.technicianPhone}>{item.phone}</Text>
+            <Text style={styles.technicianPhone}>{item.phone || "No disponible"}</Text>
           </View>
           <TouchableOpacity onPress={(e) => openStatusMenu(item, e)}>
             <Chip
-              style={[styles.statusChip, { backgroundColor: getStatusColor(item.status) + "20" }]}
-              textStyle={{ color: getStatusColor(item.status) }}
+              style={[styles.statusChip, { backgroundColor: getStatusColor(item.status || "inactive") + "20" }]}
+              textStyle={{ color: getStatusColor(item.status || "inactive") }}
             >
-              {getStatusText(item.status)}
+              {getStatusText(item.status || "inactive")}
             </Chip>
           </TouchableOpacity>
-        </View>
-
-        <View style={styles.specializationContainer}>
-          {Array.isArray(item.specialization) &&
-            item.specialization.map((spec) => (
-              <Chip key={spec} style={styles.specializationChip}>
-                {spec}
-              </Chip>
-            ))}
-        </View>
-
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Ionicons name="document-text-outline" size={16} color="#6b7280" />
-            <Text style={styles.statText}>{item.reportsCount} reportes</Text>
-          </View>
-          {item.lastActive && (
-            <View style={styles.statItem}>
-              <Ionicons name="time-outline" size={16} color="#6b7280" />
-              <Text style={styles.statText}>Activo: {new Date(item.lastActive).toLocaleDateString()}</Text>
-            </View>
-          )}
         </View>
 
         <View style={styles.actionButtons}>
@@ -414,6 +395,7 @@ export default function TechniciansList() {
   )
 }
 
+// Añadir estilo para el placeholder de la foto
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -584,5 +566,15 @@ const styles = StyleSheet.create({
   warningText: {
     color: "#ef4444",
     marginTop: 8,
+  },
+  // Añadir estilo para el placeholder de la foto
+  photoPlaceholder: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#f3f4f6",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
   },
 })

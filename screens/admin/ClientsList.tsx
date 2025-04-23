@@ -9,18 +9,9 @@ import AppHeader from "../../components/AppHeader"
 import { useAuth } from "../../context/AuthContext"
 import type { User } from "../../context/AuthContext"
 
+// Modificar la interfaz Client para que coincida con la estructura de datos real
 interface Client extends User {
-  ruc: string
-  email: string
-  phone: string
-  address: string
-  status: "active" | "inactive" | "pending"
-  contractType: "monthly" | "annual" | "project"
-  invoiceStatus: "paid" | "pending" | "overdue"
-  buildings: number
-  lifts: number
-  contactPerson?: string
-  lastInvoiceDate?: string
+  // No necesitamos redefinir propiedades que ya están en User
 }
 
 export default function ClientsList() {
@@ -44,9 +35,7 @@ export default function ClientsList() {
     invoiceStatus: [],
   })
 
-  // const [clients, setClients] = useState<Client[]>([]); // Removed duplicate declaration
-  // const [filteredClients, setFilteredClients] = useState<Client[]>([]) // Removed duplicate declaration
-
+  // Modificar el useEffect para mapear correctamente los datos
   useEffect(() => {
     // Filter clients from all users
     const clientList = users?.filter((user): user is Client => user.role === "client") || []
@@ -63,25 +52,29 @@ export default function ClientsList() {
       result = result.filter(
         (client) =>
           client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          client.ruc.includes(searchQuery) ||
+          client.ruc?.includes(searchQuery) ||
           client.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          client.phone.includes(searchQuery),
+          client.phone?.includes(searchQuery),
       )
     }
 
     // Aplicar filtros de estado
     if (selectedFilters.status.length > 0) {
-      result = result.filter((client) => selectedFilters.status.includes(client.status))
+      result = result.filter((client) => client.status && selectedFilters.status.includes(client.status))
     }
 
     // Aplicar filtros de tipo de contrato
     if (selectedFilters.contractType.length > 0) {
-      result = result.filter((client) => selectedFilters.contractType.includes(client.contractType))
+      result = result.filter(
+        (client) => client.contractType && selectedFilters.contractType.includes(client.contractType),
+      )
     }
 
     // Aplicar filtros de estado de factura
     if (selectedFilters.invoiceStatus.length > 0) {
-      result = result.filter((client) => selectedFilters.invoiceStatus.includes(client.invoiceStatus))
+      result = result.filter(
+        (client) => client.invoiceStatus && selectedFilters.invoiceStatus.includes(client.invoiceStatus),
+      )
     }
 
     setFilteredClients(result)
@@ -93,6 +86,7 @@ export default function ClientsList() {
     navigation.navigate("CreateUser")
   }
 
+  // Modificar la función handleEditClient para navegar correctamente
   const handleEditClient = (client: Client) => {
     navigation.navigate("EditClient", { clientId: client.id })
   }
@@ -204,21 +198,22 @@ export default function ClientsList() {
     </TouchableOpacity>
   )
 
+  // Modificar el renderItem para mostrar correctamente los datos
   const renderItem = ({ item }: { item: Client }) => (
     <Card style={styles.clientCard}>
       <Card.Content>
         <View style={styles.clientHeader}>
           <View style={styles.clientInfo}>
             <Text style={styles.clientName}>{item.name}</Text>
-            <Text style={styles.clientRuc}>RUC: {item.ruc}</Text>
+            <Text style={styles.clientRuc}>RUC: {item.ruc || "No disponible"}</Text>
             <Text style={styles.clientEmail}>{item.email}</Text>
           </View>
           <TouchableOpacity onPress={(e) => openStatusMenu(item, e)}>
             <Chip
-              style={[styles.statusChip, { backgroundColor: getStatusColor(item.status) + "20" }]}
-              textStyle={{ color: getStatusColor(item.status) }}
+              style={[styles.statusChip, { backgroundColor: getStatusColor(item.status || "inactive") + "20" }]}
+              textStyle={{ color: getStatusColor(item.status || "inactive") }}
             >
-              {getStatusText(item.status)}
+              {getStatusText(item.status || "inactive")}
             </Chip>
           </TouchableOpacity>
         </View>
@@ -226,16 +221,16 @@ export default function ClientsList() {
         <View style={styles.clientDetails}>
           <View style={styles.detailRow}>
             <Ionicons name="call-outline" size={16} color="#6b7280" />
-            <Text style={styles.detailText}>{item.phone}</Text>
+            <Text style={styles.detailText}>{item.phone || "No disponible"}</Text>
           </View>
           <View style={styles.detailRow}>
             <Ionicons name="location-outline" size={16} color="#6b7280" />
-            <Text style={styles.detailText}>{item.address}</Text>
+            <Text style={styles.detailText}>{item.address || "No disponible"}</Text>
           </View>
-          {item.contactPerson && (
+          {item.buildingName && (
             <View style={styles.detailRow}>
-              <Ionicons name="person-outline" size={16} color="#6b7280" />
-              <Text style={styles.detailText}>Contacto: {item.contactPerson}</Text>
+              <Ionicons name="business-outline" size={16} color="#6b7280" />
+              <Text style={styles.detailText}>Edificio: {item.buildingName}</Text>
             </View>
           )}
         </View>
@@ -243,29 +238,17 @@ export default function ClientsList() {
         <View style={styles.clientStats}>
           <View style={styles.statItem}>
             <Ionicons name="business-outline" size={16} color="#6b7280" />
-            <Text style={styles.statText}>{item.buildings} edificios</Text>
+            <Text style={styles.statText}>{item.elevatorCount || 0} ascensores</Text>
           </View>
           <View style={styles.statItem}>
             <Ionicons name="git-merge-outline" size={16} color="#6b7280" />
-            <Text style={styles.statText}>{item.lifts} ascensores</Text>
+            <Text style={styles.statText}>{item.floorCount || 0} paradas</Text>
           </View>
-          <View style={styles.statItem}>
-            <Ionicons name="document-text-outline" size={16} color="#6b7280" />
-            <Text style={styles.statText}>Contrato: {getStatusText(item.contractType)}</Text>
-          </View>
-        </View>
-
-        <View style={styles.invoiceSection}>
-          <Chip
-            style={[styles.invoiceChip, { backgroundColor: getStatusColor(item.invoiceStatus) + "20" }]}
-            textStyle={{ color: getStatusColor(item.invoiceStatus) }}
-          >
-            Factura: {getStatusText(item.invoiceStatus)}
-          </Chip>
-          {item.lastInvoiceDate && (
-            <Text style={styles.invoiceDate}>
-              Última factura: {new Date(item.lastInvoiceDate).toLocaleDateString()}
-            </Text>
+          {item.elevatorBrand && (
+            <View style={styles.statItem}>
+              <Ionicons name="construct-outline" size={16} color="#6b7280" />
+              <Text style={styles.statText}>Marca: {item.elevatorBrand}</Text>
+            </View>
           )}
         </View>
 

@@ -6,15 +6,29 @@ import * as SecureStore from "expo-secure-store"
 import { Alert } from "react-native"
 
 // Define user types
-type UserRole = "admin" | "technician" | "client"
+export type UserRole = "admin" | "technician" | "client"
 
-interface User {
+export interface User {
   id: string
   name: string
   email: string
   role: UserRole
   profileImage?: string
   phone?: string
+  // Añadir propiedades adicionales que pueden tener todos los usuarios
+  photo?: string
+  status?: string
+  // Propiedades específicas para clientes
+  ruc?: string
+  address?: string
+  buildingName?: string
+  elevatorBrand?: string
+  elevatorCount?: number
+  floorCount?: number
+  contractType?: string
+  invoiceStatus?: string
+  // Propiedades específicas para técnicos
+  specialization?: string[]
 }
 
 interface AuthContextType {
@@ -26,6 +40,7 @@ interface AuthContextType {
   updateUserProfile: (data: Partial<User>) => Promise<User>
   register: (userData: any, role: UserRole) => Promise<boolean>
   users: User[] // Add users to the AuthContextType
+  updateUser: (user: Partial<User>) => Promise<void>
 }
 
 // Create context
@@ -186,16 +201,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
+  const updateUser = async (updatedUser: Partial<User>) => {
+    try {
+      if (!updatedUser.id) {
+        throw new Error("User ID is required for update")
+      }
+
+      // Actualizar el usuario en la lista de usuarios
+      const updatedUsers = users.map((user) => (user.id === updatedUser.id ? { ...user, ...updatedUser } : user))
+
+      setUsers(updatedUsers)
+
+      // Si el usuario actualizado es el usuario actual, actualizar también el estado del usuario
+      if (user && user.id === updatedUser.id) {
+        setUser({ ...user, ...updatedUser })
+      }
+
+      // Aquí podrías añadir lógica para persistir los cambios en AsyncStorage o en una API
+
+      return Promise.resolve()
+    } catch (error) {
+      console.error("Error updating user:", error)
+      return Promise.reject(error)
+    }
+  }
+
   // Context value
   const value = {
     user,
-    isLoading,
-    isAuthenticated,
+    users,
     login,
     logout,
-    updateUserProfile,
     register,
-    users, // Add users to the context value
+    isLoading,
+    isAuthenticated,
+    updateUser, // Añadir esta línea
+    updateUserProfile,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
@@ -211,5 +252,3 @@ export const useAuth = () => {
 
   return context
 }
-
-export type { User }
