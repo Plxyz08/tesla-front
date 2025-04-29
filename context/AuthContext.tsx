@@ -27,6 +27,8 @@ export interface User {
   floorCount?: number
   contractType?: string
   invoiceStatus?: string
+  // Estado de pago (añadido para solucionar el error)
+  paymentStatus?: "paid" | "debt"
   // Campos financieros (Fase 5.1)
   duracionContratoMeses?: number
   totalCuentaCliente?: number

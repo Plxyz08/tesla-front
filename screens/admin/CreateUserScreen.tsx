@@ -41,9 +41,9 @@ type FormStep = "type" | "personal" | "details" | "credentials" | "financial" | 
 
 // Define los colores principales
 const COLORS = {
-  primary: "#0284c7",
-  primaryLight: "#e0f2fe",
-  secondary: "#7c3aed",
+  primary: "#7c3aed", // Cambiado de "#0284c7" a morado de admin
+  primaryLight: "#ede9fe", // Cambiado de "#e0f2fe" a morado claro
+  secondary: "#7c3aed", // Mantener el morado para secondary también
   secondaryLight: "#ede9fe",
   success: "#10b981",
   successLight: "#d1fae5",
@@ -403,17 +403,28 @@ export default function CreateUserScreen({ navigation, route }: Props) {
         : ["type", "personal", "details", "credentials", "review"]
     const currentIndex = steps.indexOf(currentStep)
 
+    // Cambiar el color de los elementos de progreso
+    const progressStepActive = {
+      backgroundColor: "#7c3aed", // Cambiado de "#0284c7" a morado
+      borderColor: "#7c3aed", // Cambiado de "#0284c7" a morado
+    }
+
+    // Cambiar el color de la línea de progreso activa
+    const progressLineActive = {
+      backgroundColor: "#7c3aed", // Cambiado de "#0284c7" a morado
+    }
+
     return (
       <View style={styles.progressContainer}>
         {steps.map((step, index) => (
           <React.Fragment key={step}>
-            <View style={[styles.progressStep, index <= currentIndex ? styles.progressStepActive : {}]}>
+            <View style={[styles.progressStep, index <= currentIndex ? progressStepActive : {}]}>
               <Text style={[styles.progressStepText, index <= currentIndex ? styles.progressStepTextActive : {}]}>
                 {index + 1}
               </Text>
             </View>
             {index < steps.length - 1 && (
-              <View style={[styles.progressLine, index < currentIndex ? styles.progressLineActive : {}]} />
+              <View style={[styles.progressLine, index < currentIndex ? progressLineActive : {}]} />
             )}
           </React.Fragment>
         ))}
@@ -423,13 +434,19 @@ export default function CreateUserScreen({ navigation, route }: Props) {
 
   // Renderizar el paso de selección de tipo de usuario
   const renderTypeStep = () => {
+    // Cambiar el color del borde de la tarjeta de tipo seleccionada
+    const typeCardSelected = {
+      borderColor: "#7c3aed", // Cambiado de "#0284c7" a morado
+      backgroundColor: "#f5f3ff", // Cambiado a un fondo morado muy claro
+    }
+
     return (
       <Animated.View entering={FadeInDown.duration(300)} style={styles.stepContainer}>
         <Text style={styles.stepTitle}>Tipo de Usuario</Text>
         <Text style={styles.stepDescription}>Seleccione el tipo de usuario que desea crear</Text>
 
         <TouchableOpacity
-          style={[styles.typeCard, userType === "client" ? styles.typeCardSelected : {}]}
+          style={[styles.typeCard, userType === "client" ? typeCardSelected : {}]}
           onPress={() => setUserType("client")}
         >
           <View
@@ -450,7 +467,7 @@ export default function CreateUserScreen({ navigation, route }: Props) {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.typeCard, userType === "technician" ? styles.typeCardSelected : {}]}
+          style={[styles.typeCard, userType === "technician" ? typeCardSelected : {}]}
           onPress={() => setUserType("technician")}
         >
           <View
@@ -767,6 +784,23 @@ export default function CreateUserScreen({ navigation, route }: Props) {
 
   // Renderizar el paso de información financiera (Fase 5.1)
   const renderFinancialStep = () => {
+    // Cambiar el color de la tarjeta de información
+    const infoCard = {
+      flexDirection: "row" as const,
+      backgroundColor: "#ede9fe",
+      borderRadius: 8,
+      padding: 12,
+      marginTop: 8,
+      alignItems: "center" as const,
+    }
+
+    // Cambiar el color del texto de información
+    const infoText = {
+      flex: 1,
+      fontSize: 14,
+      color: "#7c3aed", // Cambiado de "#0284c7" a morado
+    }
+
     return (
       <Animated.View entering={FadeInDown.duration(300)} style={styles.stepContainer}>
         <Text style={styles.stepTitle}>Información Financiera</Text>
@@ -814,9 +848,9 @@ export default function CreateUserScreen({ navigation, route }: Props) {
           {errors.duracionContratoMeses && <HelperText type="error">{errors.duracionContratoMeses}</HelperText>}
         </View>
 
-        <View style={styles.infoCard}>
+        <View style={infoCard}>
           <Ionicons name="information-circle-outline" size={24} color={COLORS.primary} style={styles.infoIcon} />
-          <Text style={styles.infoText}>
+          <Text style={infoText}>
             El valor total del contrato es obligatorio. La información de abonos de pago se podrá gestionar
             posteriormente en la sección de edición del cliente.
           </Text>
@@ -1065,6 +1099,11 @@ export default function CreateUserScreen({ navigation, route }: Props) {
 
   // Renderizar los botones de navegación
   const renderNavigationButtons = () => {
+    // Cambiar el color del botón siguiente
+    const nextButton = {
+      backgroundColor: "#7c3aed", // Cambiado de "#0284c7" a morado
+    }
+
     return (
       <View style={styles.navigationButtons}>
         {currentStep !== "type" && (
@@ -1083,7 +1122,7 @@ export default function CreateUserScreen({ navigation, route }: Props) {
           <Button
             mode="contained"
             onPress={goToNextStep}
-            style={[styles.navigationButton, styles.nextButton, currentStep === "type" ? styles.fullWidthButton : {}]}
+            style={[styles.navigationButton, nextButton, currentStep === "type" ? styles.fullWidthButton : {}]}
             buttonColor={userType === "client" ? COLORS.primary : COLORS.secondary}
             icon="arrow-right"
           >
@@ -1093,7 +1132,7 @@ export default function CreateUserScreen({ navigation, route }: Props) {
           <Button
             mode="contained"
             onPress={handleRegister}
-            style={[styles.navigationButton, styles.nextButton]}
+            style={[styles.navigationButton, nextButton]}
             buttonColor={userType === "client" ? COLORS.primary : COLORS.secondary}
             icon="check"
             loading={isLoading}
@@ -1104,6 +1143,31 @@ export default function CreateUserScreen({ navigation, route }: Props) {
         )}
       </View>
     )
+  }
+
+  // Cambiar el color del borde de la foto
+  const photo = {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 3,
+    borderColor: "#7c3aed", // Cambiado de "#0284c7" a morado
+  }
+
+  // Cambiar el color del botón de foto
+  const photoButton = {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#7c3aed", // Cambiado de "#0284c7" a morado
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   }
 
   return (
@@ -1171,8 +1235,8 @@ const styles = StyleSheet.create({
     borderColor: "#e5e7eb",
   },
   progressStepActive: {
-    backgroundColor: "#0284c7",
-    borderColor: "#0284c7",
+    backgroundColor: "#7c3aed",
+    borderColor: "#7c3aed",
   },
   progressStepText: {
     fontSize: 14,
@@ -1188,7 +1252,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#e5e7eb",
   },
   progressLineActive: {
-    backgroundColor: "#0284c7",
+    backgroundColor: "#7c3aed",
   },
   stepContainer: {
     marginBottom: 24,
@@ -1215,8 +1279,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   typeCardSelected: {
-    borderColor: "#0284c7",
-    backgroundColor: "#f0f9ff",
+    borderColor: "#7c3aed",
+    backgroundColor: "#f5f3ff",
   },
   typeIconContainer: {
     width: 56,
@@ -1253,7 +1317,7 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     borderWidth: 3,
-    borderColor: "#0284c7",
+    borderColor: "#7c3aed",
   },
   photoPlaceholder: {
     width: 120,
@@ -1275,7 +1339,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#0284c7",
+    backgroundColor: "#7c3aed",
     justifyContent: "center",
     alignItems: "center",
     marginLeft: 8,

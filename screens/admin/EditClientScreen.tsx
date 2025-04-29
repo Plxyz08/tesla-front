@@ -12,7 +12,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native"
-import { TextInput, Button, HelperText, Divider } from "react-native-paper"
+import { TextInput, Button, HelperText } from "react-native-paper"
 import { Ionicons } from "@expo/vector-icons"
 import { useNavigation, useRoute } from "@react-navigation/native"
 import * as ImagePicker from "expo-image-picker"
@@ -22,19 +22,10 @@ import ErrorMessage from "../../components/ErrorMessage"
 // Importar el contexto de autenticación
 import { useAuth, type UserRole } from "../../context/AuthContext"
 import * as FileSystem from "expo-file-system"
-import DateTimePickerModal from "react-native-modal-datetime-picker"
 
 // Modificar la interfaz RouteParams
 interface RouteParams {
   clientId?: string
-}
-
-// Definir la interfaz para un abono de pago
-interface AbonoPago {
-  id?: string // Make id optional since it might not exist in incoming data
-  monto: number
-  fecha: string
-  concepto?: string
 }
 
 export default function EditClientScreen() {
@@ -68,7 +59,6 @@ export default function EditClientScreen() {
   // Estados para los datos financieros (Fase 5.1)
   const [duracionContratoMeses, setDuracionContratoMeses] = useState("")
   const [totalCuentaCliente, setTotalCuentaCliente] = useState("")
-  const [abonosPago, setAbonosPago] = useState<AbonoPago[]>([])
 
   // Alert message state
   const [alertVisible, setAlertVisible] = useState(false)
@@ -97,19 +87,15 @@ export default function EditClientScreen() {
     confirmPassword?: string
     totalCuentaCliente?: string
     duracionContratoMeses?: string
-    abonoMonto?: string
-    abonoFecha?: string
   }>({})
 
   const [alertData, setAlertData] = useState({ type: "success", title: "", message: "" })
   const [errorData, setErrorData] = useState({ title: "", message: "" })
 
-  // New state for adding abonos
-  const [newAbonoMonto, setNewAbonoMonto] = useState("")
-  const [newAbonoFecha, setNewAbonoFecha] = useState(new Date())
-  const [isDatePickerVisible, setDatePickerVisible] = useState(false)
+  // Estado para el estado de pago
+  const [paymentStatus, setPaymentStatus] = useState<"paid" | "debt">("paid")
 
-  // Modificar el useEffect para cargar datos reales
+  // Modificar el useEffect para cargar el estado de pago
   useEffect(() => {
     if (isEditing && clientId) {
       setIsLoading(true)
@@ -130,13 +116,12 @@ export default function EditClientScreen() {
         setBuildingName(client.buildingName || "")
         setElevatorBrand(client.elevatorBrand || "")
 
-        // Cargar datos financieros (Fase 5.1)
+        // Cargar datos financieros
         setDuracionContratoMeses(client.duracionContratoMeses ? client.duracionContratoMeses.toString() : "")
         setTotalCuentaCliente(client.totalCuentaCliente ? client.totalCuentaCliente.toString() : "")
-        setAbonosPago((client.abonosPago || []).map(abono => ({
-          ...abono,
-          id: abono.id || Math.random().toString(36).substring(2, 9)
-        })))
+
+        // Cargar el estado de pago
+        setPaymentStatus(client.paymentStatus || "paid")
 
         setIsLoading(false)
       } else {
@@ -241,52 +226,11 @@ export default function EditClientScreen() {
       }
     }
 
-    if (newAbonoMonto.trim() && (isNaN(Number(newAbonoMonto)) || Number(newAbonoMonto) <= 0)) {
-      newErrors.abonoMonto = "El monto del abono debe ser un número positivo"
-    }
-
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
-  // Función para manejar la adición de un nuevo abono
-  const handleAddAbono = () => {
-    if (!newAbonoMonto.trim() || isNaN(Number(newAbonoMonto)) || Number(newAbonoMonto) <= 0) {
-      setErrors({ ...errors, abonoMonto: "El monto del abono debe ser un número positivo" })
-      return
-    }
-
-    const newAbono: AbonoPago = {
-      id: Math.random().toString(36).substring(2, 9),
-      monto: Number(newAbonoMonto),
-      fecha: newAbonoFecha.toISOString(),
-      concepto: "Abono manual", // Puedes permitir al usuario ingresar un concepto
-    }
-
-    setAbonosPago([...abonosPago, newAbono])
-    setNewAbonoMonto("")
-    setNewAbonoFecha(new Date())
-    setErrors({ ...errors, abonoMonto: undefined, abonoFecha: undefined })
-    setDatePickerVisible(false)
-  }
-
-  // Función para mostrar el DatePicker
-  const showDatePicker = () => {
-    setDatePickerVisible(true)
-  }
-
-  // Función para ocultar el DatePicker
-  const hideDatePicker = () => {
-    setDatePickerVisible(false)
-  }
-
-  // Función para manejar la confirmación de la fecha
-  const handleConfirmDate = (date: Date) => {
-    setNewAbonoFecha(date)
-    hideDatePicker()
-  }
-
-  // Modificar la función handleSave para guardar los cambios reales
+  // Modificar la función handleSave para incluir el estado de pago
   const handleSave = async () => {
     if (!validateForm()) {
       Alert.alert("Error", "Por favor, corrija los errores en el formulario")
@@ -340,10 +284,10 @@ export default function EditClientScreen() {
         elevatorBrand,
         elevatorCount: Number.parseInt(buildings, 10),
         floorCount: Number.parseInt(lifts, 10),
-        // Datos financieros (Fase 5.1)
+        // Datos financieros actualizados
         duracionContratoMeses: duracionContratoMeses ? Number.parseInt(duracionContratoMeses, 10) : undefined,
         totalCuentaCliente: totalCuentaCliente ? Number.parseFloat(totalCuentaCliente) : undefined,
-        abonosPago: abonosPago || [], // Preservar los abonos existentes
+        paymentStatus: paymentStatus, // Añadir el estado de pago
       }
 
       // Actualizar el usuario en el contexto
@@ -600,60 +544,38 @@ export default function EditClientScreen() {
               />
               {errors.duracionContratoMeses && <HelperText type="error">{errors.duracionContratoMeses}</HelperText>}
             </View>
+          </View>
 
-            {/* Sección para añadir abonos */}
-            <Text style={styles.sectionTitle}>Abonos de Pago</Text>
+          {/* Sección de estado de pago */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Estado de Pago</Text>
+            <Text style={styles.sectionSubtitle}>Indique si el cliente ha realizado el pago mensual</Text>
 
-            <View style={styles.formRow}>
-              <View style={[styles.formGroup, { flex: 1, marginRight: 8 }]}>
-                <TextInput
-                  label="Monto del abono ($)"
-                  value={newAbonoMonto}
-                  onChangeText={(text) => {
-                    setNewAbonoMonto(text.replace(/[^0-9.]/g, ""))
-                    if (errors.abonoMonto) setErrors({ ...errors, abonoMonto: "" })
-                  }}
-                  mode="outlined"
-                  style={styles.input}
-                  keyboardType="numeric"
-                  error={!!errors.abonoMonto}
-                  outlineColor="#e5e7eb"
-                  activeOutlineColor="#7c3aed"
-                />
-                {errors.abonoMonto && <HelperText type="error">{errors.abonoMonto}</HelperText>}
-              </View>
+            <View style={styles.paymentStatusContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.paymentStatusOption,
+                  paymentStatus === "paid" && { backgroundColor: "#10b981" + "20", borderColor: "#10b981" },
+                ]}
+                onPress={() => setPaymentStatus("paid")}
+              >
+                <View style={[styles.statusDot, { backgroundColor: "#10b981" }]} />
+                <Text style={[styles.statusText, paymentStatus === "paid" && { color: "#10b981" }]}>
+                  Pago Realizado
+                </Text>
+              </TouchableOpacity>
 
-              <View style={[styles.formGroup, { flex: 1, marginLeft: 8 }]}>
-                <Text style={styles.inputLabel}>Fecha del abono</Text>
-                <TouchableOpacity style={styles.datePickerButton} onPress={showDatePicker}>
-                  <Ionicons name="calendar-outline" size={20} color="#7c3aed" />
-                  <Text style={styles.datePickerButtonText}>{newAbonoFecha.toLocaleDateString()}</Text>
-                </TouchableOpacity>
-                {errors.abonoFecha && <HelperText type="error">{errors.abonoFecha}</HelperText>}
-              </View>
+              <TouchableOpacity
+                style={[
+                  styles.paymentStatusOption,
+                  paymentStatus === "debt" && { backgroundColor: "#ef4444" + "20", borderColor: "#ef4444" },
+                ]}
+                onPress={() => setPaymentStatus("debt")}
+              >
+                <View style={[styles.statusDot, { backgroundColor: "#ef4444" }]} />
+                <Text style={[styles.statusText, paymentStatus === "debt" && { color: "#ef4444" }]}>En Deuda</Text>
+              </TouchableOpacity>
             </View>
-
-            <Button mode="contained" onPress={handleAddAbono} style={styles.addAbonoButton} buttonColor="#7c3aed">
-              Añadir Abono
-            </Button>
-
-            {/* Lista de abonos existentes */}
-            {abonosPago.length > 0 && (
-              <View style={styles.abonosContainer}>
-                <Text style={styles.abonosTitle}>Abonos Registrados</Text>
-                <Divider style={styles.divider} />
-
-                {abonosPago.map((abono, index) => (
-                  <View key={abono.id || index} style={styles.abonoItem}>
-                    <View style={styles.abonoDetails}>
-                      <Text style={styles.abonoMonto}>${abono.monto.toFixed(2)}</Text>
-                      <Text style={styles.abonoFecha}>{new Date(abono.fecha).toLocaleDateString()}</Text>
-                    </View>
-                    {abono.concepto && <Text style={styles.abonoConcepto}>{abono.concepto}</Text>}
-                  </View>
-                ))}
-              </View>
-            )}
           </View>
 
           {/* Sección de estado */}
@@ -769,13 +691,6 @@ export default function EditClientScreen() {
           message={errorData.message}
           onClose={() => setErrorVisible(false)}
         />
-        <DateTimePickerModal
-          isVisible={isDatePickerVisible}
-          mode="date"
-          onConfirm={handleConfirmDate}
-          onCancel={hideDatePicker}
-          date={newAbonoFecha}
-        />
       </View>
     </KeyboardAvoidingView>
   )
@@ -789,12 +704,12 @@ const styles = StyleSheet.create({
   cancelButton: {
     flex: 1,
     marginRight: 8,
-    borderColor: '#d1d5db',
+    borderColor: "#d1d5db",
   },
   saveButton: {
     flex: 1,
     marginLeft: 8,
-    backgroundColor: '#7c3aed',
+    backgroundColor: "#7c3aed",
   },
   scrollView: {
     flex: 1,
@@ -920,91 +835,21 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 40,
   },
-  // Estilos para la sección de abonos (Fase 5.1)
-  abonosContainer: {
-    marginTop: 16,
-    backgroundColor: "#f9fafb",
-    borderRadius: 8,
-    padding: 12,
-  },
-  abonosTitle: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#4b5563",
-    marginBottom: 8,
-  },
-  divider: {
-    backgroundColor: "#e5e7eb",
-    height: 1,
-    marginBottom: 12,
-  },
-  abonoItem: {
-    backgroundColor: "white",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: "#7c3aed",
-  },
-  abonoDetails: {
+  paymentStatusContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 4,
+    marginTop: 12,
   },
-  abonoMonto: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#1f2937",
-  },
-  abonoFecha: {
-    fontSize: 14,
-    color: "#6b7280",
-  },
-  abonoConcepto: {
-    fontSize: 14,
-    color: "#4b5563",
-    fontStyle: "italic",
-  },
-  abonosSummary: {
-    backgroundColor: "#ede9fe",
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  abonosSummaryText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#7c3aed",
-    marginBottom: 4,
-  },
-  abonosNote: {
-    fontSize: 12,
-    color: "#6b7280",
-    fontStyle: "italic",
-    textAlign: "center",
-    marginTop: 8,
-  },
-  datePickerButton: {
+  paymentStatusOption: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: "#e5e7eb",
-    borderRadius: 8,
-    padding: 12,
-    backgroundColor: "white",
-  },
-  datePickerButtonText: {
-    marginLeft: 8,
-    fontSize: 15,
-    color: "#1f2937",
-  },
-  inputLabel: {
-    fontSize: 14,
-    color: "#1f2937",
-    marginBottom: 8,
-  },
-  addAbonoButton: {
-    marginVertical: 12,
+    marginHorizontal: 4,
   },
 })

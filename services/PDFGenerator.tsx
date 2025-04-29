@@ -319,6 +319,14 @@ export const generateAccountStatementPDF = async (invoices: any[], payments: any
     phone: "+593 968 100 793",
   }
 
+  // Si hay HTML personalizado, usarlo directamente
+  if (accountInfo?.customHtml) {
+    return await generatePDF({
+      html: accountInfo.customHtml,
+      fileName: accountInfo.fileName || "Documento",
+    })
+  }
+
   // Calculate totals
   const totalInvoiced = invoices.reduce((sum, invoice) => sum + invoice.amount, 0).toFixed(2)
   const totalPaid = payments.reduce((sum, payment) => sum + payment.amount, 0).toFixed(2)
