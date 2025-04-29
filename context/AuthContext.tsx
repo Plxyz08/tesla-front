@@ -27,6 +27,14 @@ export interface User {
   floorCount?: number
   contractType?: string
   invoiceStatus?: string
+  // Campos financieros (Fase 5.1)
+  duracionContratoMeses?: number
+  totalCuentaCliente?: number
+  abonosPago?: Array<{
+    monto: number
+    fecha: string
+    concepto?: string
+  }>
   // Propiedades específicas para técnicos
   specialization?: string[]
 }

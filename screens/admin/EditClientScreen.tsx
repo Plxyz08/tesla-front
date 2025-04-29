@@ -12,7 +12,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native"
-import { TextInput, Button, HelperText, SegmentedButtons } from "react-native-paper"
+import { TextInput, Button, HelperText, Divider } from "react-native-paper"
 import { Ionicons } from "@expo/vector-icons"
 import { useNavigation, useRoute } from "@react-navigation/native"
 import * as ImagePicker from "expo-image-picker"
@@ -22,10 +22,19 @@ import ErrorMessage from "../../components/ErrorMessage"
 // Importar el contexto de autenticación
 import { useAuth, type UserRole } from "../../context/AuthContext"
 import * as FileSystem from "expo-file-system"
+import DateTimePickerModal from "react-native-modal-datetime-picker"
 
 // Modificar la interfaz RouteParams
 interface RouteParams {
   clientId?: string
+}
+
+// Definir la interfaz para un abono de pago
+interface AbonoPago {
+  id?: string // Make id optional since it might not exist in incoming data
+  monto: number
+  fecha: string
+  concepto?: string
 }
 
 export default function EditClientScreen() {
@@ -44,7 +53,6 @@ export default function EditClientScreen() {
   const [phone, setPhone] = useState("")
   const [photo, setPhoto] = useState<string | null>(null)
   const [address, setAddress] = useState("")
-  const [contactPerson, setContactPerson] = useState("")
   const [status, setStatus] = useState<"active" | "inactive" | "pending">("active")
   const [contractType, setContractType] = useState<"monthly" | "annual" | "project">("monthly")
   const [buildings, setBuildings] = useState("1")
@@ -56,6 +64,11 @@ export default function EditClientScreen() {
   // Añadir estados para los nuevos campos
   const [buildingName, setBuildingName] = useState("")
   const [elevatorBrand, setElevatorBrand] = useState("")
+
+  // Estados para los datos financieros (Fase 5.1)
+  const [duracionContratoMeses, setDuracionContratoMeses] = useState("")
+  const [totalCuentaCliente, setTotalCuentaCliente] = useState("")
+  const [abonosPago, setAbonosPago] = useState<AbonoPago[]>([])
 
   // Alert message state
   const [alertVisible, setAlertVisible] = useState(false)
@@ -82,10 +95,19 @@ export default function EditClientScreen() {
     lifts?: string
     password?: string
     confirmPassword?: string
+    totalCuentaCliente?: string
+    duracionContratoMeses?: string
+    abonoMonto?: string
+    abonoFecha?: string
   }>({})
 
   const [alertData, setAlertData] = useState({ type: "success", title: "", message: "" })
   const [errorData, setErrorData] = useState({ title: "", message: "" })
+
+  // New state for adding abonos
+  const [newAbonoMonto, setNewAbonoMonto] = useState("")
+  const [newAbonoFecha, setNewAbonoFecha] = useState(new Date())
+  const [isDatePickerVisible, setDatePickerVisible] = useState(false)
 
   // Modificar el useEffect para cargar datos reales
   useEffect(() => {
@@ -107,6 +129,14 @@ export default function EditClientScreen() {
         setLifts((client.floorCount || 1).toString())
         setBuildingName(client.buildingName || "")
         setElevatorBrand(client.elevatorBrand || "")
+
+        // Cargar datos financieros (Fase 5.1)
+        setDuracionContratoMeses(client.duracionContratoMeses ? client.duracionContratoMeses.toString() : "")
+        setTotalCuentaCliente(client.totalCuentaCliente ? client.totalCuentaCliente.toString() : "")
+        setAbonosPago((client.abonosPago || []).map(abono => ({
+          ...abono,
+          id: abono.id || Math.random().toString(36).substring(2, 9)
+        })))
 
         setIsLoading(false)
       } else {
@@ -180,16 +210,23 @@ export default function EditClientScreen() {
       newErrors.address = "La dirección es obligatoria"
     }
 
-    if (!contactPerson.trim()) {
-      newErrors.contactPerson = "La persona de contacto es obligatoria"
-    }
-
     if (!buildings || Number.parseInt(buildings) < 1) {
       newErrors.buildings = "Debe tener al menos 1 edificio"
     }
 
     if (!lifts || Number.parseInt(lifts) < 1) {
       newErrors.lifts = "Debe tener al menos 1 ascensor"
+    }
+
+    // Validación de campos financieros (Fase 5.1)
+    if (!totalCuentaCliente.trim()) {
+      newErrors.totalCuentaCliente = "El valor total de la cuenta es obligatorio"
+    } else if (isNaN(Number(totalCuentaCliente)) || Number(totalCuentaCliente) < 0) {
+      newErrors.totalCuentaCliente = "El valor debe ser un número positivo"
+    }
+
+    if (duracionContratoMeses.trim() && (isNaN(Number(duracionContratoMeses)) || Number(duracionContratoMeses) <= 0)) {
+      newErrors.duracionContratoMeses = "La duración debe ser un número positivo"
     }
 
     if (!isEditing) {
@@ -204,8 +241,49 @@ export default function EditClientScreen() {
       }
     }
 
+    if (newAbonoMonto.trim() && (isNaN(Number(newAbonoMonto)) || Number(newAbonoMonto) <= 0)) {
+      newErrors.abonoMonto = "El monto del abono debe ser un número positivo"
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
+  }
+
+  // Función para manejar la adición de un nuevo abono
+  const handleAddAbono = () => {
+    if (!newAbonoMonto.trim() || isNaN(Number(newAbonoMonto)) || Number(newAbonoMonto) <= 0) {
+      setErrors({ ...errors, abonoMonto: "El monto del abono debe ser un número positivo" })
+      return
+    }
+
+    const newAbono: AbonoPago = {
+      id: Math.random().toString(36).substring(2, 9),
+      monto: Number(newAbonoMonto),
+      fecha: newAbonoFecha.toISOString(),
+      concepto: "Abono manual", // Puedes permitir al usuario ingresar un concepto
+    }
+
+    setAbonosPago([...abonosPago, newAbono])
+    setNewAbonoMonto("")
+    setNewAbonoFecha(new Date())
+    setErrors({ ...errors, abonoMonto: undefined, abonoFecha: undefined })
+    setDatePickerVisible(false)
+  }
+
+  // Función para mostrar el DatePicker
+  const showDatePicker = () => {
+    setDatePickerVisible(true)
+  }
+
+  // Función para ocultar el DatePicker
+  const hideDatePicker = () => {
+    setDatePickerVisible(false)
+  }
+
+  // Función para manejar la confirmación de la fecha
+  const handleConfirmDate = (date: Date) => {
+    setNewAbonoFecha(date)
+    hideDatePicker()
   }
 
   // Modificar la función handleSave para guardar los cambios reales
@@ -262,6 +340,10 @@ export default function EditClientScreen() {
         elevatorBrand,
         elevatorCount: Number.parseInt(buildings, 10),
         floorCount: Number.parseInt(lifts, 10),
+        // Datos financieros (Fase 5.1)
+        duracionContratoMeses: duracionContratoMeses ? Number.parseInt(duracionContratoMeses, 10) : undefined,
+        totalCuentaCliente: totalCuentaCliente ? Number.parseFloat(totalCuentaCliente) : undefined,
+        abonosPago: abonosPago || [], // Preservar los abonos existentes
       }
 
       // Actualizar el usuario en el contexto
@@ -411,18 +493,6 @@ export default function EditClientScreen() {
             />
             {errors.address && <HelperText type="error">{errors.address}</HelperText>}
 
-            <TextInput
-              label="Persona de contacto"
-              value={contactPerson}
-              onChangeText={setContactPerson}
-              mode="outlined"
-              style={styles.input}
-              error={!!errors.contactPerson}
-              outlineColor="#e5e7eb"
-              activeOutlineColor="#7c3aed"
-            />
-            {errors.contactPerson && <HelperText type="error">{errors.contactPerson}</HelperText>}
-
             {/* Añadir campos para el nombre del edificio y marca del ascensor en el formulario */}
             {/* Dentro de la sección "Información del Cliente" */}
             <TextInput
@@ -487,6 +557,103 @@ export default function EditClientScreen() {
                 {errors.lifts && <HelperText type="error">{errors.lifts}</HelperText>}
               </View>
             </View>
+          </View>
+
+          {/* Sección de información financiera (Fase 5.1) */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Información Financiera</Text>
+
+            <View style={styles.formGroup}>
+              <TextInput
+                label="Valor total del contrato ($)"
+                value={totalCuentaCliente}
+                onChangeText={(text) => {
+                  setTotalCuentaCliente(text.replace(/[^0-9.]/g, ""))
+                  if (errors.totalCuentaCliente) setErrors({ ...errors, totalCuentaCliente: "" })
+                }}
+                mode="outlined"
+                style={styles.input}
+                keyboardType="numeric"
+                error={!!errors.totalCuentaCliente}
+                outlineColor="#e5e7eb"
+                activeOutlineColor="#7c3aed"
+                left={<TextInput.Icon icon="cash" />}
+              />
+              {errors.totalCuentaCliente && <HelperText type="error">{errors.totalCuentaCliente}</HelperText>}
+            </View>
+
+            <View style={styles.formGroup}>
+              <TextInput
+                label="Duración del contrato (meses)"
+                value={duracionContratoMeses}
+                onChangeText={(text) => {
+                  setDuracionContratoMeses(text.replace(/[^0-9]/g, ""))
+                  if (errors.duracionContratoMeses) setErrors({ ...errors, duracionContratoMeses: "" })
+                }}
+                mode="outlined"
+                style={styles.input}
+                keyboardType="numeric"
+                error={!!errors.duracionContratoMeses}
+                outlineColor="#e5e7eb"
+                activeOutlineColor="#7c3aed"
+                left={<TextInput.Icon icon="calendar-range" />}
+              />
+              {errors.duracionContratoMeses && <HelperText type="error">{errors.duracionContratoMeses}</HelperText>}
+            </View>
+
+            {/* Sección para añadir abonos */}
+            <Text style={styles.sectionTitle}>Abonos de Pago</Text>
+
+            <View style={styles.formRow}>
+              <View style={[styles.formGroup, { flex: 1, marginRight: 8 }]}>
+                <TextInput
+                  label="Monto del abono ($)"
+                  value={newAbonoMonto}
+                  onChangeText={(text) => {
+                    setNewAbonoMonto(text.replace(/[^0-9.]/g, ""))
+                    if (errors.abonoMonto) setErrors({ ...errors, abonoMonto: "" })
+                  }}
+                  mode="outlined"
+                  style={styles.input}
+                  keyboardType="numeric"
+                  error={!!errors.abonoMonto}
+                  outlineColor="#e5e7eb"
+                  activeOutlineColor="#7c3aed"
+                />
+                {errors.abonoMonto && <HelperText type="error">{errors.abonoMonto}</HelperText>}
+              </View>
+
+              <View style={[styles.formGroup, { flex: 1, marginLeft: 8 }]}>
+                <Text style={styles.inputLabel}>Fecha del abono</Text>
+                <TouchableOpacity style={styles.datePickerButton} onPress={showDatePicker}>
+                  <Ionicons name="calendar-outline" size={20} color="#7c3aed" />
+                  <Text style={styles.datePickerButtonText}>{newAbonoFecha.toLocaleDateString()}</Text>
+                </TouchableOpacity>
+                {errors.abonoFecha && <HelperText type="error">{errors.abonoFecha}</HelperText>}
+              </View>
+            </View>
+
+            <Button mode="contained" onPress={handleAddAbono} style={styles.addAbonoButton} buttonColor="#7c3aed">
+              Añadir Abono
+            </Button>
+
+            {/* Lista de abonos existentes */}
+            {abonosPago.length > 0 && (
+              <View style={styles.abonosContainer}>
+                <Text style={styles.abonosTitle}>Abonos Registrados</Text>
+                <Divider style={styles.divider} />
+
+                {abonosPago.map((abono, index) => (
+                  <View key={abono.id || index} style={styles.abonoItem}>
+                    <View style={styles.abonoDetails}>
+                      <Text style={styles.abonoMonto}>${abono.monto.toFixed(2)}</Text>
+                      <Text style={styles.abonoFecha}>{new Date(abono.fecha).toLocaleDateString()}</Text>
+                    </View>
+                    {abono.concepto && <Text style={styles.abonoConcepto}>{abono.concepto}</Text>}
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
 
           {/* Sección de estado */}
@@ -602,6 +769,13 @@ export default function EditClientScreen() {
           message={errorData.message}
           onClose={() => setErrorVisible(false)}
         />
+        <DateTimePickerModal
+          isVisible={isDatePickerVisible}
+          mode="date"
+          onConfirm={handleConfirmDate}
+          onCancel={hideDatePicker}
+          date={newAbonoFecha}
+        />
       </View>
     </KeyboardAvoidingView>
   )
@@ -611,6 +785,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f9fafb",
+  },
+  cancelButton: {
+    flex: 1,
+    marginRight: 8,
+    borderColor: '#d1d5db',
+  },
+  saveButton: {
+    flex: 1,
+    marginLeft: 8,
+    backgroundColor: '#7c3aed',
   },
   scrollView: {
     flex: 1,
@@ -692,6 +876,7 @@ const styles = StyleSheet.create({
   },
   formGroup: {
     flex: 1,
+    justifyContent: "center",
   },
   statusContainer: {
     flexDirection: "row",
@@ -735,14 +920,91 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 40,
   },
-  cancelButton: {
-    flex: 1,
-    marginRight: 8,
-    borderColor: "#d1d5db",
+  // Estilos para la sección de abonos (Fase 5.1)
+  abonosContainer: {
+    marginTop: 16,
+    backgroundColor: "#f9fafb",
+    borderRadius: 8,
+    padding: 12,
   },
-  saveButton: {
-    flex: 1,
+  abonosTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#4b5563",
+    marginBottom: 8,
+  },
+  divider: {
+    backgroundColor: "#e5e7eb",
+    height: 1,
+    marginBottom: 12,
+  },
+  abonoItem: {
+    backgroundColor: "white",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#7c3aed",
+  },
+  abonoDetails: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  abonoMonto: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#1f2937",
+  },
+  abonoFecha: {
+    fontSize: 14,
+    color: "#6b7280",
+  },
+  abonoConcepto: {
+    fontSize: 14,
+    color: "#4b5563",
+    fontStyle: "italic",
+  },
+  abonosSummary: {
+    backgroundColor: "#ede9fe",
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  abonosSummaryText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#7c3aed",
+    marginBottom: 4,
+  },
+  abonosNote: {
+    fontSize: 12,
+    color: "#6b7280",
+    fontStyle: "italic",
+    textAlign: "center",
+    marginTop: 8,
+  },
+  datePickerButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: "white",
+  },
+  datePickerButtonText: {
     marginLeft: 8,
-    backgroundColor: "#7c3aed",
+    fontSize: 15,
+    color: "#1f2937",
+  },
+  inputLabel: {
+    fontSize: 14,
+    color: "#1f2937",
+    marginBottom: 8,
+  },
+  addAbonoButton: {
+    marginVertical: 12,
   },
 })

@@ -23,7 +23,6 @@ import type { RouteProp } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import Animated, { FadeInDown } from "react-native-reanimated"
 
-
 // Cloudinary configuration
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/teslalift/upload"
 const UPLOAD_PRESET = "teslalift-perfil"
@@ -38,7 +37,7 @@ type Props = {
 type UserType = "client" | "technician"
 
 // Define los pasos del formulario
-type FormStep = "type" | "personal" | "details" | "credentials" | "review"
+type FormStep = "type" | "personal" | "details" | "credentials" | "financial" | "review"
 
 // Define los colores principales
 const COLORS = {
@@ -90,6 +89,10 @@ export default function CreateUserScreen({ navigation, route }: Props) {
   const [isUploading, setIsUploading] = useState(false)
   const [profileImage, setProfileImage] = useState<string | null>(null)
 
+  // Estados para los datos financieros (Fase 5.1)
+  const [duracionContratoMeses, setDuracionContratoMeses] = useState("")
+  const [totalCuentaCliente, setTotalCuentaCliente] = useState("")
+
   // Referencia al ScrollView para manejar el scroll automático
   const scrollViewRef = useRef<ScrollView>(null)
 
@@ -117,7 +120,7 @@ export default function CreateUserScreen({ navigation, route }: Props) {
       if (!profileImage) {
         newErrors.profileImage = "La foto de perfil es obligatoria"
       }
-      
+
       if (!name.trim()) {
         newErrors.name = "El nombre es obligatorio"
       }
@@ -146,6 +149,21 @@ export default function CreateUserScreen({ navigation, route }: Props) {
 
       if (!address.trim()) {
         newErrors.address = "La dirección es obligatoria"
+      }
+    }
+
+    if (currentStep === "financial" && userType === "client") {
+      if (!totalCuentaCliente.trim()) {
+        newErrors.totalCuentaCliente = "El valor total de la cuenta es obligatorio"
+      } else if (isNaN(Number(totalCuentaCliente)) || Number(totalCuentaCliente) < 0) {
+        newErrors.totalCuentaCliente = "El valor debe ser un número positivo"
+      }
+
+      if (
+        duracionContratoMeses.trim() &&
+        (isNaN(Number(duracionContratoMeses)) || Number(duracionContratoMeses) <= 0)
+      ) {
+        newErrors.duracionContratoMeses = "La duración debe ser un número positivo"
       }
     }
 
@@ -179,6 +197,13 @@ export default function CreateUserScreen({ navigation, route }: Props) {
         setCurrentStep("details")
         break
       case "details":
+        if (userType === "client") {
+          setCurrentStep("financial")
+        } else {
+          setCurrentStep("credentials")
+        }
+        break
+      case "financial":
         setCurrentStep("credentials")
         break
       case "credentials":
@@ -201,8 +226,15 @@ export default function CreateUserScreen({ navigation, route }: Props) {
       case "details":
         setCurrentStep("personal")
         break
-      case "credentials":
+      case "financial":
         setCurrentStep("details")
+        break
+      case "credentials":
+        if (userType === "client") {
+          setCurrentStep("financial")
+        } else {
+          setCurrentStep("details")
+        }
         break
       case "review":
         setCurrentStep("credentials")
@@ -333,6 +365,10 @@ export default function CreateUserScreen({ navigation, route }: Props) {
           elevatorBrand: elevatorBrand || undefined,
           elevatorCount: elevatorCount ? Number.parseInt(elevatorCount) : undefined,
           floorCount: floorCount ? Number.parseInt(floorCount) : undefined,
+          // Datos financieros (Fase 5.1)
+          duracionContratoMeses: duracionContratoMeses ? Number.parseInt(duracionContratoMeses) : undefined,
+          totalCuentaCliente: totalCuentaCliente ? Number.parseFloat(totalCuentaCliente) : undefined,
+          abonosPago: [], // Inicializar como array vacío
         }),
         // Datos específicos de técnico
         ...(userType === "technician" && {
@@ -361,7 +397,10 @@ export default function CreateUserScreen({ navigation, route }: Props) {
 
   // Renderizar el indicador de progreso
   const renderProgressIndicator = () => {
-    const steps = ["type", "personal", "details", "credentials", "review"]
+    const steps =
+      userType === "client"
+        ? ["type", "personal", "details", "financial", "credentials", "review"]
+        : ["type", "personal", "details", "credentials", "review"]
     const currentIndex = steps.indexOf(currentStep)
 
     return (
@@ -726,6 +765,66 @@ export default function CreateUserScreen({ navigation, route }: Props) {
     }
   }
 
+  // Renderizar el paso de información financiera (Fase 5.1)
+  const renderFinancialStep = () => {
+    return (
+      <Animated.View entering={FadeInDown.duration(300)} style={styles.stepContainer}>
+        <Text style={styles.stepTitle}>Información Financiera</Text>
+        <Text style={styles.stepDescription}>Ingrese los detalles financieros del contrato</Text>
+
+        <View style={styles.formGroup}>
+          <TextInput
+            label="Valor total del contrato ($)"
+            value={totalCuentaCliente}
+            onChangeText={(text) => {
+              setTotalCuentaCliente(text.replace(/[^0-9.]/g, ""))
+              if (errors.totalCuentaCliente) {
+                setErrors({ ...errors, totalCuentaCliente: "" })
+              }
+            }}
+            mode="outlined"
+            style={styles.input}
+            keyboardType="numeric"
+            error={!!errors.totalCuentaCliente}
+            outlineColor="#e5e7eb"
+            activeOutlineColor={COLORS.primary}
+            left={<TextInput.Icon icon="cash" />}
+          />
+          {errors.totalCuentaCliente && <HelperText type="error">{errors.totalCuentaCliente}</HelperText>}
+        </View>
+
+        <View style={styles.formGroup}>
+          <TextInput
+            label="Duración del contrato (meses)"
+            value={duracionContratoMeses}
+            onChangeText={(text) => {
+              setDuracionContratoMeses(text.replace(/[^0-9]/g, ""))
+              if (errors.duracionContratoMeses) {
+                setErrors({ ...errors, duracionContratoMeses: "" })
+              }
+            }}
+            mode="outlined"
+            style={styles.input}
+            keyboardType="numeric"
+            error={!!errors.duracionContratoMeses}
+            outlineColor="#e5e7eb"
+            activeOutlineColor={COLORS.primary}
+            left={<TextInput.Icon icon="calendar-range" />}
+          />
+          {errors.duracionContratoMeses && <HelperText type="error">{errors.duracionContratoMeses}</HelperText>}
+        </View>
+
+        <View style={styles.infoCard}>
+          <Ionicons name="information-circle-outline" size={24} color={COLORS.primary} style={styles.infoIcon} />
+          <Text style={styles.infoText}>
+            El valor total del contrato es obligatorio. La información de abonos de pago se podrá gestionar
+            posteriormente en la sección de edición del cliente.
+          </Text>
+        </View>
+      </Animated.View>
+    )
+  }
+
   // Renderizar el paso de credenciales
   const renderCredentialsStep = () => {
     return (
@@ -849,47 +948,73 @@ export default function CreateUserScreen({ navigation, route }: Props) {
         </View>
 
         {userType === "client" ? (
-          <View style={styles.reviewCard}>
-            <View style={styles.reviewHeader}>
-              <Text style={styles.reviewSectionTitle}>Detalles del Cliente</Text>
-              <IconButton
-                icon="pencil"
-                size={20}
-                onPress={() => setCurrentStep("details")}
-                iconColor={COLORS.primary}
-              />
-            </View>
-            <View style={styles.reviewItem}>
-              <Text style={styles.reviewLabel}>RUC:</Text>
-              <Text style={styles.reviewValue}>{ruc}</Text>
-            </View>
-            <View style={styles.reviewItem}>
-              <Text style={styles.reviewLabel}>Empresa:</Text>
-              <Text style={styles.reviewValue}>{companyName}</Text>
-            </View>
-            <View style={styles.reviewItem}>
-              <Text style={styles.reviewLabel}>Dirección:</Text>
-              <Text style={styles.reviewValue}>{address}</Text>
-            </View>
-            {elevatorBrand && (
-              <View style={styles.reviewItem}>
-                <Text style={styles.reviewLabel}>Marca de ascensor:</Text>
-                <Text style={styles.reviewValue}>{elevatorBrand}</Text>
+          <>
+            <View style={styles.reviewCard}>
+              <View style={styles.reviewHeader}>
+                <Text style={styles.reviewSectionTitle}>Detalles del Cliente</Text>
+                <IconButton
+                  icon="pencil"
+                  size={20}
+                  onPress={() => setCurrentStep("details")}
+                  iconColor={COLORS.primary}
+                />
               </View>
-            )}
-            {elevatorCount && (
               <View style={styles.reviewItem}>
-                <Text style={styles.reviewLabel}>Número de ascensores:</Text>
-                <Text style={styles.reviewValue}>{elevatorCount}</Text>
+                <Text style={styles.reviewLabel}>RUC:</Text>
+                <Text style={styles.reviewValue}>{ruc}</Text>
               </View>
-            )}
-            {floorCount && (
               <View style={styles.reviewItem}>
-                <Text style={styles.reviewLabel}>Número de paradas:</Text>
-                <Text style={styles.reviewValue}>{floorCount}</Text>
+                <Text style={styles.reviewLabel}>Empresa:</Text>
+                <Text style={styles.reviewValue}>{companyName}</Text>
               </View>
-            )}
-          </View>
+              <View style={styles.reviewItem}>
+                <Text style={styles.reviewLabel}>Dirección:</Text>
+                <Text style={styles.reviewValue}>{address}</Text>
+              </View>
+              {elevatorBrand && (
+                <View style={styles.reviewItem}>
+                  <Text style={styles.reviewLabel}>Marca de ascensor:</Text>
+                  <Text style={styles.reviewValue}>{elevatorBrand}</Text>
+                </View>
+              )}
+              {elevatorCount && (
+                <View style={styles.reviewItem}>
+                  <Text style={styles.reviewLabel}>Número de ascensores:</Text>
+                  <Text style={styles.reviewValue}>{elevatorCount}</Text>
+                </View>
+              )}
+              {floorCount && (
+                <View style={styles.reviewItem}>
+                  <Text style={styles.reviewLabel}>Número de paradas:</Text>
+                  <Text style={styles.reviewValue}>{floorCount}</Text>
+                </View>
+              )}
+            </View>
+
+            <View style={styles.reviewCard}>
+              <View style={styles.reviewHeader}>
+                <Text style={styles.reviewSectionTitle}>Información Financiera</Text>
+                <IconButton
+                  icon="pencil"
+                  size={20}
+                  onPress={() => setCurrentStep("financial")}
+                  iconColor={COLORS.primary}
+                />
+              </View>
+              <View style={styles.reviewItem}>
+                <Text style={styles.reviewLabel}>Valor total:</Text>
+                <Text style={styles.reviewValue}>
+                  ${totalCuentaCliente ? Number.parseFloat(totalCuentaCliente).toFixed(2) : "0.00"}
+                </Text>
+              </View>
+              <View style={styles.reviewItem}>
+                <Text style={styles.reviewLabel}>Duración contrato:</Text>
+                <Text style={styles.reviewValue}>
+                  {duracionContratoMeses ? `${duracionContratoMeses} meses` : "No especificado"}
+                </Text>
+              </View>
+            </View>
+          </>
         ) : (
           <View style={styles.reviewCard}>
             <View style={styles.reviewHeader}>
@@ -1005,6 +1130,7 @@ export default function CreateUserScreen({ navigation, route }: Props) {
           {currentStep === "type" && renderTypeStep()}
           {currentStep === "personal" && renderPersonalInfoStep()}
           {currentStep === "details" && renderDetailsStep()}
+          {currentStep === "financial" && userType === "client" && renderFinancialStep()}
           {currentStep === "credentials" && renderCredentialsStep()}
           {currentStep === "review" && renderReviewStep()}
         </ScrollView>
@@ -1367,5 +1493,21 @@ const styles = StyleSheet.create({
   },
   fullWidthButton: {
     flex: 1,
+  },
+  infoCard: {
+    flexDirection: "row",
+    backgroundColor: "#e0f2fe",
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
+    alignItems: "center",
+  },
+  infoIcon: {
+    marginRight: 8,
+  },
+  infoText: {
+    flex: 1,
+    fontSize: 14,
+    color: "#0284c7",
   },
 })

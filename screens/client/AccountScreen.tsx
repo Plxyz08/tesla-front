@@ -19,6 +19,7 @@ import { useApp } from "../../context/AppContext"
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { LinearGradient } from "expo-linear-gradient"
+import { useAuth } from "../../context/AuthContext"
 
 // First, import the new components at the top of the file
 import InvoiceDetailsModal from "../../components/InvoiceDetailsModal"
@@ -45,6 +46,7 @@ interface Payment {
 export default function ClientAccountScreen() {
   // Get data from context
   const { invoices: contextInvoices } = useApp()
+  const { user } = useAuth()
   const insets = useSafeAreaInsets()
 
   // Component state
@@ -277,13 +279,17 @@ export default function ClientAccountScreen() {
       .reduce((sum, invoice) => sum + invoice.amount, 0)
     const paymentProgress = totalAmount > 0 ? paidAmount / totalAmount : 0
 
+    // Calculate the balance
+    const balance = (user?.totalCuentaCliente || 0) - paidAmount
+
     return {
       pendingAmount,
       totalAmount,
       paidAmount,
       paymentProgress,
+      balance,
     }
-  }, [invoices])
+  }, [invoices, payments, user])
 
   // Skeleton loading component
   const renderSkeletonInvoice = useCallback(
@@ -352,11 +358,11 @@ export default function ClientAccountScreen() {
       // Añadir información adicional para el estado de cuenta
       const accountInfo = {
         customerInfo: {
-          name: "Cliente Demo S.A.",
-          address: "Av. Amazonas N36-152, Quito",
-          ruc: "1792456789001",
-          email: "cliente@ejemplo.com",
-          phone: "+593 2 394 5600",
+          name: user?.name,
+          address: user?.address,
+          ruc: user?.ruc,
+          email: user?.email,
+          phone: user?.phone,
           contractType: "Mantenimiento Mensual",
           contractStart: "01/01/2024",
           contractEnd: "31/12/2024",
@@ -383,7 +389,7 @@ export default function ClientAccountScreen() {
       console.error("Error generating PDF:", error)
       showError("Error de Generación de PDF", "No se pudo generar el PDF. Por favor, inténtelo de nuevo más tarde.")
     }
-  }, [invoices, payments])
+  }, [invoices, payments, user])
 
   const showError = (title: string, message: string) => {
     setErrorData({ title, message })
@@ -543,7 +549,7 @@ export default function ClientAccountScreen() {
                   <View style={styles.balanceContainer}>
                     <View style={styles.balanceInfo}>
                       <Text style={styles.balanceLabel}>Saldo Actual</Text>
-                      <Text style={styles.balanceAmount}>$ {accountStats.pendingAmount.toFixed(2)}</Text>
+                      <Text style={styles.balanceAmount}>$ {accountStats.balance.toFixed(2)}</Text>
                       <View style={styles.paymentStatusContainer}>
                         <Text style={styles.paymentStatusLabel}>
                           {accountStats.paymentProgress >= 0.75
@@ -716,43 +722,12 @@ export default function ClientAccountScreen() {
                             </View>
                             <View style={styles.invoiceAmount}>
                               <Text style={styles.invoiceAmountText}>$ {invoice.amount.toFixed(2)}</Text>
-                              <View style={[styles.statusContainer, { backgroundColor: statusColor.bg }]}>
+                              <View style={[styles.statusBadge, { backgroundColor: statusColor.bg }]}>
                                 <Text style={[styles.statusText, { color: statusColor.text }]}>
                                   {getStatusText(invoice.status)}
                                 </Text>
                               </View>
                             </View>
-                          </View>
-
-                          <View style={styles.invoiceActions}>
-                            <TouchableOpacity
-                              style={styles.invoiceAction}
-                              accessibilityLabel="Ver detalles de factura"
-                              onPress={() => handleViewInvoice(invoice)}
-                            >
-                              <Ionicons name="eye-outline" size={18} color="#6b7280" />
-                              <Text style={styles.invoiceActionText}>Ver</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                              style={styles.invoiceAction}
-                              accessibilityLabel="Descargar factura"
-                              onPress={() => handleDownloadInvoice(invoice)}
-                            >
-                              <Ionicons name="download-outline" size={18} color="#6b7280" />
-                              <Text style={styles.invoiceActionText}>Descargar</Text>
-                            </TouchableOpacity>
-
-                            {invoice.status !== "paid" && (
-                              <TouchableOpacity
-                                style={styles.invoiceAction}
-                                accessibilityLabel="Pagar factura"
-                                onPress={handlePayButtonPress}
-                              >
-                                <Ionicons name="card-outline" size={18} color="#f7be0d" />
-                                <Text style={[styles.invoiceActionText, { color: "#f7be0d" }]}>Pagar</Text>
-                              </TouchableOpacity>
-                            )}
                           </View>
                         </TouchableOpacity>
                       )
@@ -773,7 +748,7 @@ export default function ClientAccountScreen() {
                         accessibilityLabel="Página anterior"
                         accessibilityState={{ disabled: page === 0 }}
                       >
-                        <Ionicons name="chevron-back" size={18} color={page === 0 ? "#d1d5db" : "#f7be0d"} />
+                        <Ionicons name="chevron-back" size={18} color={page === 0 ? "#d1d5db" : "#0284c7"} />
                       </TouchableOpacity>
 
                       <Text style={styles.paginationText}>
@@ -790,7 +765,7 @@ export default function ClientAccountScreen() {
                         <Ionicons
                           name="chevron-forward"
                           size={18}
-                          color={page >= totalPages - 1 ? "#d1d5db" : "#f7be0d"}
+                          color={page >= totalPages - 1 ? "#d1d5db" : "#0284c7"}
                         />
                       </TouchableOpacity>
                     </View>
@@ -809,47 +784,32 @@ export default function ClientAccountScreen() {
                   </View>
 
                   <View style={styles.contractDetails}>
-                    <View style={styles.contractRow}>
-                      <View style={styles.contractIconContainer}>
-                        <Ionicons name="document-text" size={20} color="#f7be0d" />
-                      </View>
-                      <View style={styles.contractTextContainer}>
-                        <Text style={styles.contractLabel}>Tipo de Contrato</Text>
-                        <Text style={styles.contractText}>Mantenimiento Mensual</Text>
-                      </View>
+                    <View style={styles.detailRow}>
+                      <Ionicons name="document-text" size={20} color="#0284c7" />
+                      <Text style={styles.detailText}>Tipo de Contrato: Mantenimiento Mensual</Text>
                     </View>
 
-                    <View style={styles.contractRow}>
-                      <View style={styles.contractIconContainer}>
-                        <Ionicons name="calendar" size={20} color="#f7be0d" />
-                      </View>
-                      <View style={styles.contractTextContainer}>
-                        <Text style={styles.contractLabel}>Fecha de Renovación</Text>
-                        <Text style={styles.contractText}>31/12/2024</Text>
-                      </View>
+                    <View style={styles.detailRow}>
+                      <Ionicons name="calendar" size={20} color="#0284c7" />
+                      <Text style={styles.detailText}>Fecha de Renovación: 31/12/2024</Text>
                     </View>
 
-                    <View style={styles.contractRow}>
-                      <View style={styles.contractIconContainer}>
-                        <Ionicons name="time" size={20} color="#f7be0d" />
-                      </View>
-                      <View style={styles.contractTextContainer}>
-                        <Text style={styles.contractLabel}>Visitas Programadas</Text>
-                        <Text style={styles.contractText}>2 mensuales</Text>
-                      </View>
+                    <View style={styles.detailRow}>
+                      <Ionicons name="time" size={20} color="#0284c7" />
+                      <Text style={styles.detailText}>Visitas Programadas: 2 mensuales</Text>
                     </View>
                   </View>
 
                   <View style={styles.contractProgress}>
                     <Text style={styles.contractProgressLabel}>Tiempo restante del contrato</Text>
-                    <ProgressBar progress={0.65} color="#f7be0d" style={styles.contractProgressBar} />
+                    <ProgressBar progress={0.65} color="#0284c7" style={styles.contractProgressBar} />
                     <Text style={styles.contractProgressText}>8 meses restantes</Text>
                   </View>
 
                   <Button
                     mode="outlined"
                     icon="file-document"
-                    textColor="#f7be0d"
+                    textColor="#0284c7"
                     style={styles.viewContractButton}
                     accessibilityLabel="Ver contrato completo"
                     onPress={handleViewContract}
@@ -917,7 +877,7 @@ export default function ClientAccountScreen() {
       {isGeneratingPDF && (
         <View style={styles.loadingOverlay}>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#f7be0d" />
+            <ActivityIndicator size="large" color="#0284c7" />
             <Text style={styles.loadingText}>Generando documento...</Text>
           </View>
         </View>
@@ -963,149 +923,209 @@ export default function ClientAccountScreen() {
 }
 
 const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    padding: 20,
+  },
   container: {
     flex: 1,
     backgroundColor: "#f9fafb",
   },
   header: {
-    marginTop: 10,
-    paddingHorizontal: 20,
-    paddingBottom: 15,
+    backgroundColor: "#0284c7",
+    padding: 20,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  headerContent: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
     color: "white",
   },
-  headerActionButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+  content: {
+    flexGrow: 1,
+    padding: 20,
+  },
+  summaryCard: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 20,
+    marginBottom: 20,
+  },
+  summaryTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  summaryItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  summaryLabel: {
+    fontSize: 16,
+    color: "#6b7280",
+  },
+  summaryValue: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  actionButtons: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
+  actionButton: {
+    backgroundColor: "#0284c7",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+  },
+  actionButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContainer: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 20,
+    width: "80%",
+    maxWidth: 500,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  modalMessage: {
+    fontSize: 16,
+    marginBottom: 20,
+  },
+  modalButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
+  modalButton: {
+    backgroundColor: "#0284c7",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+  },
+  modalButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  skeletonContainer: {
+    flex: 1,
+    padding: 20,
     justifyContent: "center",
     alignItems: "center",
   },
-  content: {
-    padding: 16,
-    paddingBottom: 32,
+  skeletonItem: {
+    width: "100%",
+    height: 40,
+    backgroundColor: "#e5e7eb",
+    marginBottom: 10,
+    borderRadius: 5,
   },
-  // Error state styles
   errorContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#f9fafb",
   },
   errorTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
-    color: "#1f2937",
-    marginTop: 16,
-    marginBottom: 8,
+    color: "#ef4444",
+    marginBottom: 10,
   },
   errorMessage: {
-    fontSize: 14,
+    fontSize: 16,
     color: "#6b7280",
     textAlign: "center",
-    marginBottom: 24,
   },
   retryButton: {
+    backgroundColor: "#0284c7",
+    paddingVertical: 12,
     paddingHorizontal: 24,
+    borderRadius: 8,
+    marginTop: 20,
   },
-  // Loading overlay
+  retryButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  actions: {
+    flexDirection: "row",
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#e5e7eb",
+  },
+  itemsTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1f2937",
+    marginBottom: 12,
+  },
+  itemsTable: {
+    marginBottom: 16,
+  },
+  itemsHeader: {
+    flexDirection: "row",
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+    backgroundColor: "#f9fafb",
+  },
+  itemHeaderText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#4b5563",
+  },
+  itemRow: {
+    flexDirection: "row",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f3f4f6",
+  },
+  itemText: {
+    fontSize: 13,
+    color: "#1f2937",
+  },
   loadingOverlay: {
     position: "absolute",
     top: 0,
     left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 9000,
   },
   loadingContainer: {
     backgroundColor: "white",
+    borderRadius: 10,
     padding: 20,
-    borderRadius: 12,
     alignItems: "center",
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
   },
   loadingText: {
-    marginTop: 12,
-    color: "#4b5563",
-    fontWeight: "500",
-  },
-  // Skeleton loading styles
-  skeletonContainer: {
-    flex: 1,
-  },
-  skeletonBalance: {
-    height: 180,
-    backgroundColor: "#e5e7eb",
-    borderRadius: 12,
-    marginBottom: 16,
-  },
-  skeletonActions: {
-    height: 50,
-    backgroundColor: "#e5e7eb",
-    borderRadius: 12,
-    marginBottom: 16,
-  },
-  skeletonTabs: {
-    height: 40,
-    backgroundColor: "#e5e7eb",
-    borderRadius: 12,
-    marginBottom: 16,
-  },
-  skeletonInvoice: {
-    height: 100,
-    backgroundColor: "#e5e7eb",
-    borderRadius: 12,
-    marginBottom: 16,
-    padding: 16,
-    justifyContent: "space-between",
-  },
-  skeletonLine: {
-    height: 12,
-    backgroundColor: "#f3f4f6",
-    borderRadius: 6,
-    width: "100%",
-    marginBottom: 8,
-  },
-  // Summary card styles
-  summaryCard: {
-    marginBottom: 16,
-    borderRadius: 12,
-    elevation: 4,
-  },
-  summaryHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 16,
-  },
-  summaryTitle: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#1f2937",
+    marginTop: 10,
   },
   lastUpdated: {
     fontSize: 12,
@@ -1134,7 +1154,7 @@ const styles = StyleSheet.create({
   balanceAmount: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#f7be0d",
+    color: "#0284c7",
     marginBottom: 12,
   },
   paymentStatusContainer: {
@@ -1158,7 +1178,7 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     borderWidth: 8,
-    borderColor: "#fff8e1",
+    borderColor: "#e0f2fe",
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "white",
@@ -1166,7 +1186,7 @@ const styles = StyleSheet.create({
   progressPercent: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#f7be0d",
+    color: "#0284c7",
   },
   progressLabel: {
     fontSize: 12,
@@ -1184,49 +1204,44 @@ const styles = StyleSheet.create({
   downloadButton: {
     flex: 1,
     marginLeft: 8,
-    borderColor: "#f7be0d",
+    borderColor: "#0284c7",
   },
   buttonContent: {
     paddingVertical: 6,
   },
-  // Billing History styles
   billingHistoryCard: {
-    marginBottom: 16,
-    borderRadius: 12,
-    elevation: 2,
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 20,
+    marginBottom: 20,
   },
   billingHistoryTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 16,
-    color: "#1f2937",
+    marginBottom: 10,
   },
   paymentItem: {
-    marginBottom: 12,
+    marginBottom: 10,
   },
   paymentHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 8,
+    alignItems: "center",
   },
   paymentInfo: {
     flex: 1,
   },
   paymentDate: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#1f2937",
-    marginBottom: 4,
+    fontSize: 14,
+    color: "#6b7280",
   },
   paymentMethod: {
-    fontSize: 13,
+    fontSize: 14,
     color: "#6b7280",
   },
   paymentAmount: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#10b981",
   },
   paymentReference: {
     flexDirection: "row",
@@ -1248,49 +1263,42 @@ const styles = StyleSheet.create({
   noPaymentsContainer: {
     alignItems: "center",
     justifyContent: "center",
-    padding: 32,
-    backgroundColor: "#f9fafb",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderStyle: "dashed",
+    padding: 20,
   },
   noPaymentsText: {
-    marginTop: 12,
+    fontSize: 16,
     color: "#6b7280",
-    fontWeight: "500",
-    textAlign: "center",
+    marginTop: 10,
   },
   noPaymentsSubtext: {
-    marginTop: 8,
+    fontSize: 14,
     color: "#9ca3af",
-    fontSize: 13,
     textAlign: "center",
   },
-  // Invoices card styles
   invoicesCard: {
-    marginBottom: 16,
-    borderRadius: 12,
-    elevation: 2,
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 20,
+    marginBottom: 20,
   },
   invoicesTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 16,
-    color: "#1f2937",
+    marginBottom: 10,
   },
   filterContainer: {
-    paddingBottom: 12,
+    flexDirection: "row",
+    marginBottom: 10,
   },
   filterChip: {
-    marginRight: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 20,
+    borderRadius: 16,
     backgroundColor: "#f3f4f6",
+    marginRight: 8,
   },
   activeFilterChip: {
-    backgroundColor: "#f7be0d",
+    backgroundColor: "#0284c7",
   },
   pendingFilterChip: {
     backgroundColor: "#fef9c3",
@@ -1312,38 +1320,29 @@ const styles = StyleSheet.create({
   pendingFilterChipText: {
     color: "#854d0e",
   },
-  paidFilterChipText: {
-    color: "#166534",
-  },
   overdueFilterChipText: {
     color: "#b91c1c",
   },
-  divider: {
-    marginBottom: 16,
-  },
   invoiceItem: {
     padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: "#f7be0d",
+    borderRadius: 10,
+    marginBottom: 10,
   },
   invoiceHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
   },
   invoiceInfo: {
     flex: 1,
-    marginRight: 8,
   },
   invoiceDescription: {
-    fontSize: 15,
-    fontWeight: "600",
+    fontSize: 16,
+    fontWeight: "bold",
     color: "#1f2937",
-    marginBottom: 4,
   },
   invoiceDate: {
-    fontSize: 13,
+    fontSize: 14,
     color: "#6b7280",
   },
   invoiceAmount: {
@@ -1352,135 +1351,87 @@ const styles = StyleSheet.create({
   invoiceAmountText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#1f2937",
-    marginBottom: 4,
   },
-  statusContainer: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: "500",
-  },
-  invoiceActions: {
-    flexDirection: "row",
-    marginTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(0,0,0,0.05)",
-    paddingTop: 12,
-  },
-  invoiceAction: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginRight: 16,
-  },
-  invoiceActionText: {
-    marginLeft: 4,
-    fontSize: 13,
-    color: "#6b7280",
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 15,
   },
   noInvoicesContainer: {
     alignItems: "center",
     justifyContent: "center",
-    padding: 32,
-    backgroundColor: "#f9fafb",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderStyle: "dashed",
+    padding: 20,
   },
   noInvoicesText: {
-    marginTop: 12,
+    fontSize: 16,
     color: "#6b7280",
-    textAlign: "center",
+    marginTop: 10,
   },
   pagination: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 16,
+    marginTop: 20,
   },
   paginationButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
     backgroundColor: "#f3f4f6",
-    justifyContent: "center",
-    alignItems: "center",
+    padding: 10,
+    borderRadius: 5,
+    marginHorizontal: 5,
   },
   paginationButtonDisabled: {
-    backgroundColor: "#f9fafb",
+    opacity: 0.5,
   },
   paginationText: {
-    marginHorizontal: 12,
-    fontSize: 14,
+    fontSize: 16,
     color: "#6b7280",
   },
-  // Contract card styles
   contractCard: {
-    marginBottom: 16,
-    borderRadius: 12,
-    elevation: 2,
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 20,
+    marginBottom: 20,
   },
   contractHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 10,
   },
   contractTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#1f2937",
   },
   contractStatusChip: {
     backgroundColor: "#dcfce7",
-    height: 28,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 15,
   },
   contractDetails: {
-    marginBottom: 20,
+    marginBottom: 10,
   },
-  contractRow: {
+  detailRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 5,
   },
-  contractIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#fff8e1",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  contractTextContainer: {
-    flex: 1,
-  },
-  contractLabel: {
-    fontSize: 12,
+  detailText: {
+    fontSize: 14,
     color: "#6b7280",
-    marginBottom: 2,
-  },
-  contractText: {
-    fontSize: 15,
-    color: "#1f2937",
-    fontWeight: "500",
+    marginLeft: 5,
   },
   contractProgress: {
-    marginBottom: 20,
+    marginBottom: 10,
   },
   contractProgressLabel: {
     fontSize: 14,
     color: "#6b7280",
-    marginBottom: 8,
+    marginBottom: 5,
   },
   contractProgressBar: {
     height: 8,
     borderRadius: 4,
-    marginBottom: 8,
   },
   contractProgressText: {
     fontSize: 12,
@@ -1488,25 +1439,23 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   viewContractButton: {
-    borderColor: "#f7be0d",
+    borderColor: "#0284c7",
   },
-  // Support card styles
   supportCard: {
-    marginBottom: 16,
-    borderRadius: 12,
-    backgroundColor: "#fff8e1",
-    elevation: 2,
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 20,
   },
   supportTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 8,
-    color: "#e6a800",
+    marginBottom: 10,
   },
   supportText: {
-    color: "#e6a800",
+    fontSize: 16,
+    color: "#6b7280",
     marginBottom: 20,
-    lineHeight: 20,
+    lineHeight: 24,
   },
   supportButtons: {
     flexDirection: "row",
@@ -1514,22 +1463,79 @@ const styles = StyleSheet.create({
   },
   supportButton: {
     alignItems: "center",
-    padding: 12,
   },
   supportButtonIcon: {
+    backgroundColor: "#0284c7",
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: "#f7be0d",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 8,
-    elevation: 2,
+    marginBottom: 10,
   },
   supportButtonText: {
-    marginTop: 4,
-    color: "#f7be0d",
+    fontSize: 14,
+    color: "#6b7280",
+  },
+  skeletonLine: {
+    height: 20,
+    backgroundColor: "#e5e7eb",
+    marginBottom: 10,
+    borderRadius: 5,
+  },
+  skeletonBalance: {
+    height: 100,
+    backgroundColor: "#e5e7eb",
+    marginBottom: 16,
+    borderRadius: 8,
+    width: "100%",
+  },
+  skeletonInvoice: {
+    padding: 16,
+    backgroundColor: "white",
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  skeletonActions: {
+    height: 60,
+    backgroundColor: "#e5e7eb",
+    marginBottom: 16,
+    borderRadius: 8,
+    width: "100%",
+  },
+  skeletonTabs: {
+    height: 40,
+    backgroundColor: "#e5e7eb",
+    marginBottom: 16,
+    borderRadius: 8,
+    width: "100%",
+  },
+  headerContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  headerActionButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  summaryHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#e5e7eb",
+    marginVertical: 10,
+  },
+  statusText: {
+    fontSize: 12,
     fontWeight: "500",
   },
 })
-
