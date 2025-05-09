@@ -33,14 +33,14 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
-  const [ruc, setRuc] = useState("")
+  const [ruc, setRuc] = useState("") // Added state for RUC
 
   // Validation state
   const [errors, setErrors] = useState({
     email: "",
     password: "",
     general: "",
-    ruc: "",
+    ruc: "", // Added ruc property
   })
 
   // Load saved credentials on mount
@@ -110,15 +110,56 @@ export default function LoginScreen() {
         await SecureStore.deleteItemAsync("remember_me")
       }
 
-      // Attempt login with Supabase
+      // Attempt login
       await login(email, password)
 
-      // Si el login es exitoso, el AuthContext redirigirá automáticamente
-    } catch (error: any) {
+      // If login is successful, the AuthContext will navigate to the appropriate screen
+    } catch (error) {
       console.error("Login error:", error)
       setErrors({
         ...errors,
-        general: error.message || "Credenciales inválidas. Por favor, inténtalo de nuevo.",
+        general: "Credenciales inválidas. Por favor, inténtalo de nuevo.",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Handle demo login
+  const handleDemoLogin = async (role: "admin" | "technician" | "client") => {
+    setIsLoading(true)
+
+    try {
+      let demoEmail, demoPassword
+
+      switch (role) {
+        case "admin":
+          demoEmail = "admin@example.com"
+          demoPassword = "admin123"
+          break
+        case "technician":
+          demoEmail = "tecnico@example.com"
+          demoPassword = "tecnico123"
+          break
+        case "client":
+          demoEmail = "cliente@example.com"
+          demoPassword = "cliente123"
+          break
+        default:
+          demoEmail = "cliente@example.com"
+          demoPassword = "cliente123"
+      }
+
+      setEmail(demoEmail)
+      setPassword(demoPassword)
+
+      // Automatically login with demo credentials
+      await login(demoEmail, demoPassword)
+    } catch (error) {
+      console.error("Demo login error:", error)
+      setErrors({
+        ...errors,
+        general: "Error al iniciar sesión de demostración. Por favor, inténtalo de nuevo.",
       })
     } finally {
       setIsLoading(false)
@@ -154,7 +195,7 @@ export default function LoginScreen() {
           ) : null}
 
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>RUC (Opcional)</Text>
+            <Text style={styles.inputLabel}>RUC</Text>
             <View style={[styles.inputWrapper, errors.ruc ? styles.inputWrapperError : {}]}>
               <Ionicons name="business-outline" size={20} color="#9ca3af" style={styles.inputIcon} />
               <TextInput
@@ -234,6 +275,43 @@ export default function LoginScreen() {
               <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
             )}
           </TouchableOpacity>
+
+          <View style={styles.dividerContainer}>
+            <View style={styles.divider} />
+            <Text style={styles.dividerText}>o</Text>
+            <View style={styles.divider} />
+          </View>
+
+          <Text style={styles.demoLoginTitle}>Iniciar sesión de demostración como:</Text>
+
+          <View style={styles.demoButtonsContainer}>
+            <TouchableOpacity
+              style={[styles.demoButton, styles.adminButton]}
+              onPress={() => handleDemoLogin("admin")}
+              disabled={isLoading}
+            >
+              <Ionicons name="shield-checkmark" size={20} color="white" />
+              <Text style={styles.demoButtonText}>Admin</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.demoButton, styles.technicianButton]}
+              onPress={() => handleDemoLogin("technician")}
+              disabled={isLoading}
+            >
+              <Ionicons name="construct" size={20} color="white" />
+              <Text style={styles.demoButtonText}>Técnico</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.demoButton, styles.clientButton]}
+              onPress={() => handleDemoLogin("client")}
+              disabled={isLoading}
+            >
+              <Ionicons name="person" size={20} color="white" />
+              <Text style={styles.demoButtonText}>Cliente</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -362,8 +440,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   checkboxChecked: {
-    backgroundColor: "#f7be0d",
-    borderColor: "#f7be0d",
+    backgroundColor: "#f7be0d", // Cambiado de #0284c7 a #f7be0d
+    borderColor: "#f7be0d", // Cambiado de #0284c7 a #f7be0d
   },
   rememberMeText: {
     fontSize: 14,
@@ -371,11 +449,11 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     fontSize: 14,
-    color: "#f7be0d",
+    color: "#f7be0d", // Cambiado de #0284c7 a #f7be0d
     fontWeight: "500",
   },
   loginButton: {
-    backgroundColor: "#f7be0d",
+    backgroundColor: "#f7be0d", // Cambiado de #0284c7 a #f7be0d
     height: 50,
     borderRadius: 12,
     justifyContent: "center",
@@ -387,4 +465,55 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
+  dividerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#e5e7eb",
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    color: "#9ca3af",
+    fontSize: 14,
+  },
+  demoLoginTitle: {
+    fontSize: 14,
+    color: "#6b7280",
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  demoButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  demoButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    height: 44,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    flex: 1,
+    marginHorizontal: 4,
+  },
+  adminButton: {
+    backgroundColor: "#4f46e5",
+  },
+  technicianButton: {
+    backgroundColor: "#0891b2",
+  },
+  clientButton: {
+    backgroundColor: "#f7be0d",
+  },
+  demoButtonText: {
+    color: "white",
+    fontWeight: "500",
+    marginLeft: 6,
+    fontSize: 13,
+  },
 })
+

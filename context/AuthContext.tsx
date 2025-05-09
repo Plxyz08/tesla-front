@@ -2,33 +2,55 @@
 
 import type React from "react"
 import { createContext, useState, useContext, useEffect } from "react"
-import type { Session } from "@supabase/supabase-js"
-import { getSupabaseClient } from "../lib/supabase"
+import * as SecureStore from "expo-secure-store"
 import { Alert } from "react-native"
 
 // Define user types
 export type UserRole = "admin" | "technician" | "client"
 
-export interface UserProfile {
+export interface User {
   id: string
   name: string
   email: string
   role: UserRole
   profileImage?: string
   phone?: string
+  // Añadir propiedades adicionales que pueden tener todos los usuarios
   photo?: string
   status?: string
+  // Propiedades específicas para clientes
+  ruc?: string
+  address?: string
+  buildingName?: string
+  elevatorBrand?: string
+  elevatorCount?: number
+  floorCount?: number
+  contractType?: string
+  invoiceStatus?: string
+  // Estado de pago (añadido para solucionar el error)
+  paymentStatus?: "paid" | "debt"
+  // Campos financieros (Fase 5.1)
+  duracionContratoMeses?: number
+  totalCuentaCliente?: number
+  abonosPago?: Array<{
+    monto: number
+    fecha: string
+    concepto?: string
+  }>
+  // Propiedades específicas para técnicos
+  specialization?: string[]
 }
 
 interface AuthContextType {
-  user: UserProfile | null
-  session: Session | null
+  user: User | null
   isLoading: boolean
   isAuthenticated: boolean
   login: (email: string, password: string) => Promise<void>
-  logout: () => Promise<void>
-  updateUserProfile: (data: Partial<UserProfile>) => Promise<UserProfile>
+  logout: () => void
+  updateUserProfile: (data: Partial<User>) => Promise<User>
   register: (userData: any, role: UserRole) => Promise<boolean>
+  users: User[] // Add users to the AuthContextType
+  updateUser: (user: Partial<User>) => Promise<void>
 }
 
 // Create context
@@ -36,54 +58,21 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 // Auth provider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserProfile | null>(null)
-  const [session, setSession] = useState<Session | null>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-
-  const supabase = getSupabaseClient()
+  const [users, setUsers] = useState<User[]>([]) // Add users state
 
   // Check for existing session on mount
   useEffect(() => {
     const checkAuthState = async () => {
       try {
-        // Verificar si hay una sesión activa
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession()
+        const userJson = await SecureStore.getItemAsync("user")
 
-        if (error) {
-          throw error
-        }
-
-        if (session) {
-          setSession(session)
-
-          // Obtener el perfil del usuario
-          const { data: profile, error: profileError } = await supabase
-            .from("users")
-            .select("*")
-            .eq("id", session.user.id)
-            .single()
-
-          if (profileError) {
-            throw profileError
-          }
-
-          if (profile) {
-            setUser({
-              id: profile.id,
-              name: profile.name,
-              email: profile.email,
-              role: profile.role as UserRole,
-              profileImage: profile.profile_image || undefined,
-              phone: profile.phone || undefined,
-              photo: profile.photo || undefined,
-              status: profile.status || undefined,
-            })
-            setIsAuthenticated(true)
-          }
+        if (userJson) {
+          const userData = JSON.parse(userJson)
+          setUser(userData)
+          setIsAuthenticated(true)
         }
       } catch (error) {
         console.error("Error checking auth state:", error)
@@ -92,48 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
 
-    // Suscribirse a cambios en la autenticación
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setSession(session)
-
-      if (event === "SIGNED_IN" && session) {
-        // Obtener el perfil del usuario
-        const { data: profile, error: profileError } = await supabase
-          .from("users")
-          .select("*")
-          .eq("id", session.user.id)
-          .single()
-
-        if (profileError) {
-          console.error("Error fetching user profile:", profileError)
-          return
-        }
-
-        if (profile) {
-          setUser({
-            id: profile.id,
-            name: profile.name,
-            email: profile.email,
-            role: profile.role as UserRole,
-            profileImage: profile.profile_image || undefined,
-            phone: profile.phone || undefined,
-            photo: profile.photo || undefined,
-            status: profile.status || undefined,
-          })
-          setIsAuthenticated(true)
-        }
-      } else if (event === "SIGNED_OUT") {
-        setUser(null)
-        setIsAuthenticated(false)
-      }
-    })
-
     checkAuthState()
-
-    // Cleanup
-    return () => {
-      authListener.subscription.unsubscribe()
-    }
   }, [])
 
   // Login function
@@ -141,19 +89,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true)
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+      // In a real app, this would be an API call
+      // For demo purposes, we'll simulate authentication
 
-      if (error) {
-        throw error
+      let userData: User | null = null
+
+      // Demo users
+      if (email === "admin@example.com" && password === "admin123") {
+        userData = {
+          id: "admin-1",
+          name: "Administrador",
+          email: "admin@example.com",
+          role: "admin",
+        }
+      } else if (email === "tecnico@example.com" && password === "tecnico123") {
+        userData = {
+          id: "tech-1",
+          name: "Técnico Demo",
+          email: "tecnico@example.com",
+          role: "technician",
+        }
+      } else if (email === "cliente@example.com" && password === "cliente123") {
+        userData = {
+          id: "client-1",
+          name: "Cliente Demo",
+          email: "cliente@example.com",
+          role: "client",
+        }
+      } else {
+        // In a real app, this would be an API call to validate credentials
+        throw new Error("Credenciales inválidas")
       }
 
-      // El perfil del usuario se obtendrá automáticamente a través del listener onAuthStateChange
-    } catch (error: any) {
+      if (userData) {
+        // Save user data to secure storage
+        await SecureStore.setItemAsync("user", JSON.stringify(userData))
+
+        // Update state
+        setUser(userData)
+        setIsAuthenticated(true)
+      }
+    } catch (error) {
       console.error("Login error:", error)
-      Alert.alert("Error", error.message || "No se pudo iniciar sesión. Inténtalo de nuevo.")
       throw error
     } finally {
       setIsLoading(false)
@@ -163,56 +140,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Logout function
   const logout = async () => {
     try {
-      const { error } = await supabase.auth.signOut()
+      // Clear secure storage
+      await SecureStore.deleteItemAsync("user")
 
-      if (error) {
-        throw error
-      }
-
-      // El estado se actualizará automáticamente a través del listener onAuthStateChange
-    } catch (error: any) {
+      // Update state
+      setUser(null)
+      setIsAuthenticated(false)
+    } catch (error) {
       console.error("Logout error:", error)
       Alert.alert("Error", "No se pudo cerrar sesión. Inténtalo de nuevo.")
-      throw error
     }
   }
 
   // Update user profile
-  const updateUserProfile = async (data: Partial<UserProfile>) => {
+  const updateUserProfile = async (data: Partial<User>) => {
     try {
       if (!user) throw new Error("No user logged in")
 
-      // Convertir datos del perfil al formato de la base de datos
-      const dbData = {
-        name: data.name,
-        email: data.email,
-        profile_image: data.profileImage,
-        phone: data.phone,
-        photo: data.photo,
-        status: data.status,
-      }
+      // Update user data
+      const updatedUser = { ...user, ...data }
 
-      // Actualizar en la base de datos
-      const { data: updatedProfile, error } = await supabase
-        .from("users")
-        .update(dbData)
-        .eq("id", user.id)
-        .select()
-        .single()
+      // Save to secure storage
+      await SecureStore.setItemAsync("user", JSON.stringify(updatedUser))
 
-      if (error) {
-        throw error
-      }
-
-      // Actualizar estado local
-      const updatedUser = {
-        ...user,
-        ...data,
-      }
+      // Update state
       setUser(updatedUser)
 
       return updatedUser
-    } catch (error: any) {
+    } catch (error) {
       console.error("Update profile error:", error)
       throw error
     }
@@ -222,82 +177,75 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (userData: any, role: UserRole): Promise<boolean> => {
     setIsLoading(true)
     try {
-      // 1. Registrar el usuario en Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: userData.email,
-        password: userData.password,
-      })
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      if (authError) {
-        throw authError
-      }
-
-      if (!authData.user) {
-        throw new Error("No se pudo crear el usuario")
-      }
-
-      // 2. Crear el perfil del usuario
-      const { error: profileError } = await supabase.from("users").insert({
-        id: authData.user.id,
+      // Create a new user object
+      const newUser: User = {
+        id: `user-${Date.now()}`,
         name: userData.name,
         email: userData.email,
         role: role,
-        profile_image: userData.profileImage,
+        profileImage: userData.profileImage,
         phone: userData.phone,
-        status: "active",
-      })
-
-      if (profileError) {
-        // Si falla la creación del perfil, eliminar el usuario de Auth
-        await supabase.auth.admin.deleteUser(authData.user.id)
-        throw profileError
+        ...(role === "technician" ? { specialization: [] } : {}),
       }
 
-      // 3. Si es cliente o técnico, crear el registro correspondiente
-      if (role === "client") {
-        const { error: clientError } = await supabase.from("clients").insert({
-          user_id: authData.user.id,
-          ruc: userData.ruc,
-          address: userData.address,
-          building_name: userData.buildingName,
-          elevator_brand: userData.elevatorBrand,
-          elevator_count: userData.elevatorCount || 1,
-          floor_count: userData.floorCount,
-        })
+      // Save user data to secure storage
+      await SecureStore.setItemAsync("user", JSON.stringify(newUser))
 
-        if (clientError) {
-          throw clientError
-        }
-      } else if (role === "technician") {
-        const { error: techError } = await supabase.from("technicians").insert({
-          user_id: authData.user.id,
-          specializations: userData.specializations || [],
-        })
+      // Update state
+      setUser(newUser)
+      setIsAuthenticated(true)
 
-        if (techError) {
-          throw techError
-        }
-      }
+      // Update users list
+      setUsers((prevUsers) => [...prevUsers, newUser])
 
       return true
-    } catch (error: any) {
+    } catch (error) {
       console.error("Registration error:", error)
-      Alert.alert("Error", error.message || "No se pudo completar el registro. Inténtalo de nuevo.")
+      Alert.alert("Error", "No se pudo completar el registro. Inténtalo de nuevo.")
       return false
     } finally {
       setIsLoading(false)
     }
   }
 
+  const updateUser = async (updatedUser: Partial<User>) => {
+    try {
+      if (!updatedUser.id) {
+        throw new Error("User ID is required for update")
+      }
+
+      // Actualizar el usuario en la lista de usuarios
+      const updatedUsers = users.map((user) => (user.id === updatedUser.id ? { ...user, ...updatedUser } : user))
+
+      setUsers(updatedUsers)
+
+      // Si el usuario actualizado es el usuario actual, actualizar también el estado del usuario
+      if (user && user.id === updatedUser.id) {
+        setUser({ ...user, ...updatedUser })
+      }
+
+      // Aquí podrías añadir lógica para persistir los cambios en AsyncStorage o en una API
+
+      return Promise.resolve()
+    } catch (error) {
+      console.error("Error updating user:", error)
+      return Promise.reject(error)
+    }
+  }
+
   // Context value
   const value = {
     user,
-    session,
-    isLoading,
-    isAuthenticated,
+    users,
     login,
     logout,
     register,
+    isLoading,
+    isAuthenticated,
+    updateUser, // Añadir esta línea
     updateUserProfile,
   }
 
