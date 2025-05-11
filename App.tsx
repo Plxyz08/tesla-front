@@ -1,4 +1,4 @@
-import "./polyfills" // Importa el polyfill al inicio
+import "./polyfills" // Importa el polyfill al inicio y asegúrate de que se ejecute primero
 import { NavigationContainer } from "@react-navigation/native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 import { AuthProvider } from "./context/AuthContext"

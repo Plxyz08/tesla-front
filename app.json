@@ -4,31 +4,29 @@
     "slug": "tesla-lift-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./public/placeholder.svg",
+    "icon": "./assets/logo.png",
     "splash": {
-      "image": "./public/placeholder.svg",
+      "image": "./assets/logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./public/placeholder.svg",
+        "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.anonymous.teslaliftapp"
     },
     "web": {
-      "favicon": "./public/placeholder.svg"
+      "favicon": "./assets/logo.png"
     },
-    "newArchEnabled": true
+    "newArchEnabled": false
   }
 }
